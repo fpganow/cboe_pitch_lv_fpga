@@ -1,0 +1,83 @@
+@startuml Insert_Order
+hide empty description
+
+title Insert Order State Machine [Sub States]
+
+
+[*] --> insert_order
+
+state "Insert Order" as insert_order
+
+insert_order --> first_call: FirstCall == True
+
+state "First Call" as first_call {
+    state "Existing Orders > 0" as existing_orders_gt_0: Request.Addr = 0
+    state "Existing Orders > 0" as existing_orders_gt_0: next.State = Insert
+    state "Existing Orders == 0" as existing_orders_eg_0: Write.Addr = 0
+    state "Existing Orders == 0" as existing_orders_eg_0: NumofOrders = 1
+    state "Existing Orders == 0" as existing_orders_eg_0: next.State = Wait.for.Command
+
+    [*] --> existing_orders_gt_0: Existing Orders
+    [*] --> existing_orders_eg_0: No Existing Orders
+'    existing_orders_gt_0 --> insert_order
+    existing_orders_eg_0 --> [*]
+}
+
+insert_order --> check_memory: FirstCall == False
+
+state "Check Memory" as check_memory {
+
+    state "Clear Reads" as clear_reads: next.State = Insert
+    state "Check Just Write" as check_just_write
+
+    state "Just Write" as just_write: Write.Addr = NumOfOrders
+    just_write: NumOfOrders += 1
+    just_write: next.State = Wait.for.Command
+
+    [*] --> clear_reads: Memory is not Ready
+    'clear_reads --> insert_order
+    [*] -> check_just_write: Memory is Ready
+
+    check_just_write --> just_write: Just Write == True
+    just_write --> [*]
+    check_just_write --> check_match: Just Write == False
+
+    ' Check Match
+    state "Check Match" as check_match {
+        state "Write Order" as write_order
+        state "Write and Read" as write_and_read: Write.Addr = i
+        write_and_read:  Write.OrderId = Command.OrderId
+        write_and_read:  Write.Quantity = Command.Quantity
+        write_and_read:  Command.OrderId = orderSlot.OrderId
+        write_and_read:  Command.Quantity = orderSlot.Quantity
+        write_and_read: Read.Addr = i + 1
+        write_and_read: next.State = Insert
+        state "Append Larger" as append_larger: Write.Addr = Read.Addr
+        append_larger: justWrite = True
+        append_larger: Command.OrderId = orderSlot.OrderId
+        append_larger: Command.Quantity = orderSlot.Quantity
+        append_larger: next.State = Insert
+
+        state "Read Next or Append" as read_next
+        state "Append New" as append_new: Write.Addr = Read.Addr + 1
+        append_new: Write.Request = True
+        append_new: NumOfOrders += 1
+        append_new: next.State = Wait.for.Command
+        state "Request Next" as request_next: Read.Addr = Read.Addr + 1
+        request_next: next.State = Insert
+
+        ' Check Match
+        [*] --> write_order: Order Matches
+        write_order --> write_and_read: Not at end of List
+        write_order --> append_larger: At end of list
+'        append_larger --> [*]
+
+        [*] --> read_next: Order Does not Match
+
+        read_next --> append_new: No More Elements
+        read_next --> request_next: More Elements to Read
+        append_new --> [*]
+    }
+}
+
+@enduml

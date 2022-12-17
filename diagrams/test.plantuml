@@ -1,0 +1,52 @@
+@startuml Orders
+hide empty description
+
+header Orders in Memory
+
+label Orders[
+{{
+    title Zero Elements (Orders)
+    hide empty description
+
+    state "<null>" as order_0
+}}
+
+{{
+    title One Element (Order)
+    hide empty description
+
+    state "Order-0" as order_0
+}}
+
+{{
+    title Two Elements (Orders)
+    hide empty description
+
+    state "Order-0" as order_0
+    state "Order-1" as order_1
+    order_0 -> order_1
+}}
+
+{{
+    title More Than Two Elements
+    hide empty description
+
+    state "Order-0" as order_0
+    state "Order-1" as order_1
+    state "Order-n" as order_n
+    order_0 -> order_1
+    order_1 -right[dotted]> order_n
+}}
+
+{{
+    title Parameters
+    state "Parameters" as parameters: OrderId [u64]
+}}
+
+{{
+    title State Variables
+    state "Variables" as variables: jjj
+}}
+]
+
+@enduml
