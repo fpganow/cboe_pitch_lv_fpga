@@ -1,25 +1,25 @@
-@startuml Orders
+@startuml 02_orders_in_memory
 hide empty description
 
 header Orders in Memory
 
 label Orders[
 {{
-    title Zero Elements (Orders)
+    title Zero Orders
     hide empty description
 
     state "<null>" as order_0
 }}
 
 {{
-    title One Element (Order)
+    title One Order
     hide empty description
 
     state "Order-0" as order_0
 }}
 
 {{
-    title Two Elements (Orders)
+    title Two Orders
     hide empty description
 
     state "Order-0" as order_0
@@ -28,7 +28,7 @@ label Orders[
 }}
 
 {{
-    title More Than Two Elements
+    title More Than Two Orders
     hide empty description
 
     state "Order-0" as order_0
@@ -36,16 +36,6 @@ label Orders[
     state "Order-n" as order_n
     order_0 -> order_1
     order_1 -right[dotted]> order_n
-}}
-
-{{
-    title Parameters
-    state "Parameters" as parameters: OrderId [u64]
-}}
-
-{{
-    title State Variables
-    state "Variables" as variables: jjj
 }}
 ]
 

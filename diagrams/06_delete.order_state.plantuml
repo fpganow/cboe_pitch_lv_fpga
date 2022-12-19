@@ -1,8 +1,33 @@
-@startuml Insert_Order
+@startuml 06_delete_order_state
 hide empty description
 
-title Insert Order State Machine
+title Delete Order State Machine
 
+label DeleteOrder[
+{{
+    title Parameters
+    state "Parameters" as parameters
+        parameters: Scratch.FirstCall
+        parameters: OrderBook.Command.OrderId
+}}
+
+{{
+    title State Variables Used
+    state "Variables" as variables
+        variables: [struct] filter.state
+        variables: [u32] Scratch.i
+        variables: [u32] Scratch.Mode
+        variables: [bool] Scratch.JustWrite
+        variables: [u32] Number.of.Orders
+        variables: Memory.Command.ReadOrder.Request
+        variables: Memory.Command.ReadOrder.Address
+        variables: Memory.Command.WriteOrder.Request
+        variables: Memory.Command.WriteOrder.Address
+        variables: Memory.Command.OrderSlot.OrderId
+        variables: Memory.Command.OrderSlot.Quantity
+}}
+
+{{
 
 [*] --> insert_order
 
@@ -87,5 +112,9 @@ read_next --> request_next: More Elements to Read
 'request_next --> insert_order ' Leaf
 
 append_new --> [*]
+
+}}
+]
+
 
 @enduml

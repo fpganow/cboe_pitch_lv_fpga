@@ -1,0 +1,42 @@
+@startuml 01_tickers_in_memory
+hide empty description
+
+header Tickers in Memory
+
+label Tickers[
+{{
+    title Zero Tickers
+    hide empty description
+
+    state "<null>" as ticker_0
+}}
+
+{{
+    title One Ticker
+    hide empty description
+
+    state "ticker-0" as ticker_0
+}}
+
+{{
+    title Two Tickers 
+    hide empty description
+
+    state "ticker-0" as ticker_0
+    state "ticker-1" as ticker_1
+    ticker_0 -> ticker_1
+}}
+
+{{
+    title More Than Two Tickers
+    hide empty description
+
+    state "ticker-0" as ticker_0
+    state "ticker-1" as ticker_1
+    state "ticker-n" as ticker_n
+    ticker_0 -> ticker_1
+    ticker_1 -right[dotted]> ticker_n
+}}
+]
+
+@enduml

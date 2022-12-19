@@ -1,0 +1,104 @@
+@startuml 03_all_state_variables
+hide empty description
+
+header State Variables
+
+label StateVariables[
+{{
+    title All State Variables
+
+    state "All State Variables" as var
+        var: **[filter.states]** filter.state
+        var: **[filter.states]** filter.saved.state
+        var: [u32] number.of.tickers
+        var: [u32] number.of.orders
+        var: [bool] Send.Command
+        var: **[Scratch]** Scratch
+        var: **[Debug]** Debug
+        var: **[Memory.Command]** Memory.Command
+        var: **[OrderBook.Command]** OrderBook.Command
+
+    state "Scratch" as scratch
+        scratch: [u32] I
+        scratch: [u32] N
+        scratch: [u32] Mode
+        scratch: [u64] OrderId
+        scratch: [bool] First Call
+        scratch: [bool] Just Write
+
+    state "Debug" as debug
+        debug: [bool] Write.to.Debug
+        debug: **[debug.slot]** debug.slot
+    
+    state "debug.slot" as debug_slot
+        debug_slot: [U64] Ticker
+        debug_slot: [U64] OrderId
+
+    state "Memory Command" as mem_cmd
+        mem_cmd: [bool] Write Ticker Request
+        mem_cmd: [bool] Read Ticker Request
+        mem_cmd: [bool] Write Ticker Address
+        mem_cmd: [bool] Read Ticker Address
+        mem_cmd: **[ticker.slot]** ticker.slot.value
+        mem_cmd: [bool] Read Ticker Valid
+
+        mem_cmd: [bool] Write Order Request
+        mem_cmd: [bool] Read Order Request
+        mem_cmd: [bool] Write Order Address
+        mem_cmd: [bool] Read Order Address
+        mem_cmd: **[order.slot]** order.slot.value
+        mem_cmd: [bool] Read Order Valid
+    state "ticker.slot" as ticker_slot
+        ticker_slot: [u64] Symbol
+    state "order.slot" as order_slot
+        order_slot: [u64] OrderId
+        order_slot: [u64] Quantity
+
+    state "filter.states" as filter_states
+        filter_states: Noop
+        filter_states: Reset
+        filter_states: Debug
+        filter_states: Configuration
+        filter_states: Wait.for.Command
+        filter_states: Filter.Add
+        filter_states: Filter.Other
+        filter_states: Insert.Order
+        filter_states: Delete.Order
+
+    state "OrderBook.Command" as ob_cmd
+        ob_cmd: **[Command.Type]** type
+        ob_cmd: [u8] Side
+        ob_cmd: [u64] OrderId
+        ob_cmd: [u64] Quantity
+        ob_cmd: [u64] Symbol
+        ob_cmd: [u64] Price
+        ob_cmd: [u32] Executed Quantity
+        ob_cmd: [u32] Canceled Quantity
+        ob_cmd: [u32] Remaining Quantity
+        ob_cmd: [u64] Seconds
+        ob_cmd: [u64] Nanoseconds
+
+    state "Command.Type" as cmd_type
+        cmd_type: Time
+        cmd_type: AddOrder
+        cmd_type: OrderExecuted
+        cmd_type: OrderExecutedAtPrice
+        cmd_type: ReduceSize
+        cmd_type: ModifyOrder
+        cmd_type: DeleteOrder
+        cmd_type: Get.All.Orders
+        cmd_type: Get.Top
+    
+    var -[bold]-> filter_states
+    var -[bold]-> scratch
+    var -[bold]-> debug
+    debug -[bold]-> debug_slot
+    var -[bold]-> mem_cmd
+    mem_cmd -[bold]-> ticker_slot
+    mem_cmd -[bold]-> order_slot
+    var -[bold]-> ob_cmd
+    ob_cmd -[bold]-> cmd_type
+}}
+]
+
+@enduml

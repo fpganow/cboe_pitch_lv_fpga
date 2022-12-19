@@ -1,4 +1,4 @@
-@startuml Insert_Order
+@startuml 05_insert_order_act
 hide empty description
 
 title Insert Order Activity Diagram
