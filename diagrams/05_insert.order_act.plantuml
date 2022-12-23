@@ -10,7 +10,8 @@ while (State) is (Insert.Order)
         if (Existing Orders?) then (Yes)
             :Request First;
         else (No)
-            :Write to Addr 0;
+            :Write to Addr 0
+            Set Size to 1;
             stop
         endif
     else (No)
@@ -18,29 +19,34 @@ while (State) is (Insert.Order)
             :Clear Request;
         else (Memory Ready)
             if (Just Write?) then (Yes)
-                :Write;
+                :Write (OrderBook.Command) to end
+                Increment Size by 1;
                 stop
             else (No)
                 if (Check Match) then (Yes)
                     if (At End of List) then (Yes)
-                        :Append;
-                        :Just Write = True;
+                        :Append
+                        Write to last Element
+                        Save last element in Temp Variable (OrderBook.Command)
+                        Just Write = True;
                     else (Not at End)
-                        :WriteAddr = i;
-                        :Read.Addr = i + 1;
+                        :Write OrderBook.Command to Address = i
+                        Request a Read of Address = i + 1
+                        Increment i by 1;
                     endif
                 else (Read Next or Append)
                     if (More Elements to Read?) then (Yes)
-                        :Read.Addr = i + 1;
+                        :Request a Read of Address i + 1;
                     else (No More Elements)
-                        :Append;
+                        :Append
+                        Increase Number of Orders by 1;
                         stop
                     endif;
                 endif
             endif
         endif
     endif
-endwhile (Other)
+endwhile
 stop
 
 @enduml

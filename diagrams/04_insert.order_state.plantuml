@@ -14,88 +14,114 @@ label InsertOrder[
 {{
     title State Variables Used
     state "Variables" as variables
-        variables: [struct] filter.state
-        variables: [u32] Scratch.i
-        variables: [u32] Scratch.Mode
+        variables: **[filter.states]** filter.state
+        variables: [u32] Scratch.I
         variables: [bool] Scratch.JustWrite
-        variables: [u32] Number.of.Orders
-        variables: Memory.Command.ReadOrder.Request
-        variables: Memory.Command.ReadOrder.Address
-        variables: Memory.Command.WriteOrder.Request
-        variables: Memory.Command.WriteOrder.Address
-        variables: Memory.Command.OrderSlot.OrderId
-        variables: Memory.Command.OrderSlot.Quantity
+        variables: [u32] number.of.orders
+        variables: Memory.Command.Read Order Request
+        variables: Memory.Command.Read Order Address
+        variables: Memory.Command.Write Order Request
+        variables: Memory.Command.Write Order Address
+        variables: Memory.Command.order.slot.OrderId
+        variables: Memory.Command.order.slot.Quantity
 }}
 
 {{
+    hide empty description
 
 [*] --> insert_order
 
 state "Insert Order" as insert_order
 
-insert_order --> first_call: FirstCall == True
+insert_order --> first_call: Scratch.FirstCall == True
 
 state "First Call" as first_call
 
+' Request 1st Order from Memory
 state "Existing Orders > 0" as existing_orders_gt_0
-    existing_orders_gt_0: Request.Addr = 0
-    existing_orders_gt_0: next.State = Insert
+    existing_orders_gt_0: filter.state = Insert
+    existing_orders_gt_0: Scratch.I = 0
+    existing_orders_gt_0: Scratch.FirstCall = False
+    existing_orders_gt_0: Scratch.JustWrite = False
+    existing_orders_gt_0: Memory.Command.Read Order Request = True
+    existing_orders_gt_0: Memory.Command.Read Order Address = 0
+' Write Order to Slot 0
 state "Existing Orders == 0" as existing_orders_eg_0
-    existing_orders_eg_0: Write.Addr = 0
-    existing_orders_eg_0: NumofOrders = 1
-    existing_orders_eg_0: next.State = Wait.for.Command
+    existing_orders_eg_0: filter.state = Wait.for.Command
+    existing_orders_eg_0: number.of.orders = 1
+    existing_orders_gt_0: Memory.Command.Write Order Request = True
+    existing_orders_eg_0: Memory.Command.Write Order Address = 0
+    existing_orders_eg_0: Memory.Command.order.slot.OrderId = OrderBook.Command.OrderId
+    existing_orders_eg_0: Memory.Command.order.slot.Quantity = OrderBook.Command.Quantity
 
 first_call --> existing_orders_gt_0: Existing Orders
 first_call --> existing_orders_eg_0: No Existing Orders
 'existing_orders_gt_0 --> insert_order ' Leaf
 existing_orders_eg_0 --> [*]
 
-insert_order --> check_memory: FirstCall == False
+insert_order --> check_memory: Scratch.FirstCall == False
 
-state "Check Memory" as check_memory
+state "Check Memory" as check_memory: Is 'Memory.Command.Read Order Valid' True?
 
-state "Clear Reads" as clear_reads: next.State = Insert
-state "Check Just Write" as check_just_write
+state "Clear Reads" as clear_reads: filter.state = Insert
+state "Clear Reads" as clear_reads: Memory.Command.Read Order Request = False
+state "Check Just Write" as check_just_write: Is 'Scratch.Just Write' True?
 
 state "Just Write" as just_write
-    just_write: Write.Addr = NumOfOrders
-    just_write: NumOfOrders += 1
-    just_write: next.State = Wait.for.Command
+    just_write: filter.state = Wait.for.Command
+    just_write: number.of.orders += 1
+    just_write: Memory.Command.Write Order Request = True
+    just_write: Memory.Command.Write Order Address = number.of.orders
+    just_write: Memory.Command.order.slot.OrderId = OrderBook.Command.OrderId
+    just_write: Memory.Command.order.slot.Quantity = OrderBook.Command.Quantity
 
-    check_memory --> clear_reads: Memory is not Ready
-    'clear_reads --> insert_order ' Leaf
-    check_memory -> check_just_write: Memory is Ready
+check_memory --> clear_reads: Memory is not Ready
+'clear_reads --> insert_order ' Leaf
+check_memory -> check_just_write: Memory is Ready
 
-    check_just_write --> just_write: Just Write == True
-    just_write --> [*]
-    check_just_write --> check_match: Just Write == False
+check_just_write --> just_write: Scratch.JustWrite == True
+just_write --> [*]
+check_just_write --> check_match: Scratch.JustWrite == False
 
 ' Check Match
-state "Check Match" as check_match
+state "Check Match" as check_match: Does Order belong in 'Scratch.I' slot?
 
 state "Write Order" as write_order
+state "Append Larger" as append_larger: Write.Addr = Read.Addr
+    append_larger: filter.state = Insert
+    append_larger: Scratch.Just Write = True
+    append_larger: Memory.Command.Write Order Request = True
+    append_larger: Memory.Command.Write Address = Scratch.I
+    append_larger: Memory.Command.order.slot.OrderId = OrderBook.Command.OrderId
+    append_larger: Memory.Command.order.slot.Quantity = OrderBook.Command.Quantity
+
 state "Write and Read" as write_and_read
-    write_and_read: Write.Addr = i
-    write_and_read:  Write.OrderId = Command.OrderId
-    write_and_read:  Write.Quantity = Command.Quantity
-    write_and_read:  Command.OrderId = orderSlot.OrderId
-    write_and_read:  Command.Quantity = orderSlot.Quantity
-    write_and_read: Read.Addr = i + 1
-    write_and_read: next.State = Insert
+    write_and_read: filter.state = Insert
+    write_and_read: Scratch.Just Write = False
+    write_and_read: Scartch.I += 1
+    write_and_read: Memory.Command.Write Order Request = True
+    write_and_read: Memory.Command.Write Address = Scratch.I
+    write_and_read: Memory.Command.order.slot.OrderId = OrderBook.Command.OrderId
+    write_and_read: Memory.Command.order.slot.Quantity = OrderBook.Command.Quantity
+    write_and_read: Memory.Command.Read Request = True
+    write_and_read: Memory.Command.Read Address = Scratch.I + 1
+    write_and_read: OrderBook.Command.OrderId = Memory.Command.order.slot.OrderId
+    write_and_read: OrderBook.Command.Quantity = Memory.Command.order.slot.Quantity
 
-    state "Append Larger" as append_larger: Write.Addr = Read.Addr
-        append_larger: justWrite = True
-        append_larger: Command.OrderId = orderSlot.OrderId
-        append_larger: Command.Quantity = orderSlot.Quantity
-        append_larger: next.State = Insert
+state "Read Next or Append" as read_next
+state "Append New" as append_new
+    append_new: filter.state = Wait.for.Command
+    append_new: number.of.orders += 1
+    append_new: Memory.Command.Write Order Request = True
+    append_new: Memory.Command.Write Address = Scratch.I + 1
+    append_new: Memory.Command.order.slot.OrderId = OrderBook.Command.OrderId
+    append_new: Memory.Command.order.slot.Quantity = OrderBook.Command.Quantity
 
-    state "Read Next or Append" as read_next
-    state "Append New" as append_new: Write.Addr = Read.Addr + 1
-        append_new: Write.Request = True
-        append_new: NumOfOrders += 1
-        append_new: next.State = Wait.for.Command
-    state "Request Next" as request_next: Read.Addr = Read.Addr + 1
-        request_next: next.State = Insert
+state "Request Next" as request_next
+    request_next: filter.state = Insert
+    request_next: Read.Addr = Read.Addr + 1
+    request_next: Memory.Command.Read Request = True
+    request_next: Memory.Command.Read Address = Scratch.I + 1
 
 ' Check Match
 check_match --> write_order: Order Matches
