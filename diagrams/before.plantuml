@@ -1,0 +1,32 @@
+@startuml LinkedList
+
+label LinkedLists[
+{{
+    title Before 
+    scale 500 width 
+    hide empty description
+
+    state "1" as node_1 #white
+    state "2" as node_2 #LightBlue
+    state "3" as node_3 #white
+    state "4" as node_4 #LightBlue
+    node_1 -> node_2
+    node_2 -> node_3
+    node_3 -> node_4
+}}
+
+{{
+    title After
+    scale 500 width 
+    hide empty description
+
+    state "2" as node_1 #LightBlue
+    state "1" as node_2 #white
+    state "4" as node_3 #LightBlue
+    state "3" as node_4 #white
+    node_1 -> node_2
+    node_2 -> node_3
+    node_3 -> node_4
+}}
+]
+@enduml

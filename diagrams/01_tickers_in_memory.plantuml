@@ -37,6 +37,6 @@ label Tickers[
     ticker_0 -> ticker_1
     ticker_1 -right[dotted]> ticker_n
 }}
-]
 
+]
 @enduml

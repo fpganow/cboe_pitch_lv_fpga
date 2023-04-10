@@ -3,43 +3,48 @@ hide empty description
 
 title Delete_Order
 
-'while (State) is (Delete.Order)
-'     if (is First Call?) then (Yes)
-'        if (Existing Orders?) then (Yes)
-'            :Request First;
-'        else (No)
-'            :Write to Addr 0;
-'            stop
-'        endif
-'    else (No)
-'        if (Check Memory) then (Memory not Ready)
-'            :Clear Request;
-'        else (Memory Ready)
-'            if (Just Write?) then (Yes)
-'                :Write;
-'                stop
-'            else (No)
-'                if (Check Match) then (Yes)
-'                    if (At End of List) then (Yes)
-'                        :Append;
-'                        :Just Write = True;
-'                    else (Not at End)
-'                        :WriteAddr = i;
-'                        :Read.Addr = i + 1;
-'                    endif
-'                else (Read Next or Append)
-'                    if (More Elements to Read?) then (Yes)
-'                        :Read.Addr = i + 1;
-'                    else (No More Elements)
-'                        :Append;
-'                        stop
-'                    endif;
-'                endif
-'            endif
-'        endif
-'    endif
-'endwhile (Other)
-'stop
-
+while (State) is (Delete.Order)
+    if (is First Call?) then (Yes)
+        if (Orders Exist?) then (Yes)
+            :Request First;
+        else (No)
+            stop
+        endif
+    else (No)
+        if (Check Memory) then (Memory not Ready)
+             :Clear Request;
+        else
+            if (Check Mode)
+                :mode Search;
+                if (OrderId Matches)
+                    :Yes;
+                    if ()
+                        :Is Last;
+                        stop
+                    else
+                        :Is Not Last;
+                    endif
+                else
+                    :No;
+                    if ()
+                        :Is Last;
+                        stop
+                    else
+                        :Is Not Last;
+                    endif
+                endif
+            else
+                :mode Shift;
+                if ()
+                    :Is Last;
+                    stop
+                else
+                    :Is Not Last;
+                endif
+            endif
+        endif
+    endif
+endwhile (Other)
+stop
 
 @enduml
