@@ -6,11 +6,13 @@ title Process Command\nGet.Symbol
 label DeleteOrder[
 {{
     hide empty description
+    skinparam sequenceArrowThickness 2.0
+    'skinparam connectorFontSize 20
 
 [*] --> mode
     mode --> memory_ready: mode = Get.Symbol
 
-    memory_ready -> noop: No
+    memory_ready -[#green]> noop: No
     memory_ready --> symbol_match: Yes
 
     symbol_match --> 0_orders: Yes
@@ -25,16 +27,24 @@ label DeleteOrder[
             side_2 --> sell_2: Sell
         is_add --> exit_1
 
-    more_symbols --> read_next
-    more_symbols --> exit_2
+    more_symbols -[#green]-> read_next : Yes
+    more_symbols -[#green]-> exit_2 : No
 
+    <style>
+    stateDiagram {
+        LineColor Black
+        LineThickness 2.0
+    }
+    </style>
     state "Mode?" as mode
-    state "Memory Ready?" as memory_ready #RosyBrown
-        state "NoOp" as noop #lightgreen : 0xA2
+    state "Memory Ready?" as memory_ready
+        state "<B>Noop</B>" as noop #TECHNOLOGY;line:green;line.bold;text:DarkGreen : <color:DarkGreen>debug: <B>0xA2</B></color>
     state "Symbol Matches?" as symbol_match
     state "More Symbols?" as more_symbols
-    state "Request Next Symbol A9" as read_next
-    state "Exit" as exit_2 #lightgreen : 0xA8
+    'state "Request Next Symbol A9" as read_next
+    state "<B>Request Next Symbol</B>" as read_next #TECHNOLOGY;line:green;line.bold;text:DarkGreen : <color:DarkGreen>debug: <B>0xA9</B></color>
+    state "<B>Exit</B>" as exit_2 #TECHNOLOGY;line:green;line.bold;text:DarkGreen : <color:DarkGreen>debug: <B>0xA8</B></color>
+    'state "Exit" as exit_2 #lightgreen : 0xA8
 
 
     state "0 Orders?" as 0_orders
