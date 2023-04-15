@@ -1,0 +1,83 @@
+@startuml 09_process_command.search_state
+hide empty description
+
+title Process Command\nSearch
+
+label Search[
+{{
+    hide empty description
+    <style> 
+    stateDiagram {
+        LineColor Black
+        LineThickness 3.0
+    }
+    </style>
+
+    [*] --> mode
+    mode --> just_write: Search
+    just_write -> exit_1: Yes
+    just_write --> memory_ready: No
+
+    memory_ready -[#green]> noop: No
+    memory_ready --> order_match: Yes
+
+    order_match --> more_orders: No
+        more_orders --> read_next_ord_1: Yes
+        more_orders --> is_add_1: No
+        is_add_1 --> exit_2: No
+        is_add_1 --> exit_3: Yes
+    order_match --> order_type: Yes
+
+        order_type --> exit_4: other
+
+        order_type -down-> is_last_1: Add
+        is_last_1 -down-> write_n_shift_1: No
+        is_last_1 -down-> write_n_just_write_1: Yes
+
+        order_type --> is_last_2: Delete
+        is_last_2 -down-> exit_5: Yes
+        is_last_2 -down-> read_next_order_2: No
+
+        order_type --> price_same: Edit
+        price_same --> exit_6: Yes
+        price_same --> final_order: No
+
+        final_order --> exit_7: Yes
+        final_order --> read_n_shift: No
+
+    state "Mode?" as mode
+    state "Just Write?" as just_write
+    state "<B>Write and Exit</B>" as exit_1 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xB0</B></color>
+    state "<B>Noop</B>" as noop #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xB1</B></color>
+
+    state "Memory Ready?" as memory_ready
+    state "Order Match?" as order_match
+
+    ' Right Branch
+    state "More Orders?" as more_orders
+        state "<B>Read Next Order</B>" as read_next_ord_1 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xB2</B></color>
+        state "Is Add?" as is_add_1
+        state "<B>Exit (Drop)</B>" as exit_2 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xB3</B></color>
+        state "<B>Exit (Append)</B>" as exit_3 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xB4</B></color>
+
+    ' Left Branch
+    state "Order Type?" as order_type
+        ' Add
+        state "<B>Exit (Error)</B>" as exit_4 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xB5</B></color>
+        state "Is Last?" as is_last_1
+        state "<B>Write and Shift</B>" as write_n_shift_1 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xB7</B></color>
+        state "<B>Write and Append</B>" as write_n_just_write_1 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xB6</B></color>
+        ' Delete
+        state "Is Last?" as is_last_2
+        state "<B>Exit (Delete)</B>" as exit_5 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xBB</B></color>
+        state "<B>Delete and Shift</B>" as read_next_order_2 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xBC</B></color>
+        ' Edit
+        state "Price Same?" as price_same
+        state "<B>Exit (Update)</B>" as exit_6 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xB8</B></color>
+        state "Final Order?" as final_order
+        state "<B>Exit (Update)</B>" as exit_7 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xB9</B></color>
+        state "<B>Read and Shift</B>" as read_n_shift #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xBA</B></color>
+}}
+]
+
+@enduml

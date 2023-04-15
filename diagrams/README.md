@@ -27,6 +27,17 @@
 
 ![alt text][07_delete_act]
 
+[8] Get Symbol
+
+![alt text][08_get_symbol]
+
+[9] Search
+
+![alt text][09_search]
+
+[10] Shift
+
+![alt text][10_shift]
 
 [01_tickers]: ./out/01_tickers_in_memory.png
 [02_orders]: ./out/02_orders_in_memory.png
@@ -35,3 +46,6 @@
 [05_insert_act]: ./out/05_insert_order_act.png
 [06_delete_state]: ./out/06_delete_order_state.png
 [07_delete_act]: ./out/07_delete_order_act.png
+[08_get_symbol]: ./out/08_process_command.get.symbol_state.png
+[09_search]: ./out/09_process_command.search_state.png
+[10_shift]: ./out/10_process_command.shiift_state.png

@@ -1,0 +1,90 @@
+@startuml 10_process_command.shift_state
+hide empty description
+
+title Process Command\nShift
+
+label Shift[
+{{
+    hide empty description
+    <style> 
+    stateDiagram {
+        LineColor Black
+        LineThickness 3.0
+    }
+    </style>
+
+    [*] --> mode
+    mode --> just_write: Shift
+    just_write -> exit_1: Yes
+
+    just_write--> order_type: No
+        ' Add
+        order_type --> is_last_add: Add
+        is_last_add --> write_n_append: Yes
+        is_last_add --> shift_1: No
+
+        ' Edit
+        order_type --> is_final_edit: Edit
+            is_final_edit --> is_final_side: Yes
+            is_final_side --> is_final_side_buy_is_first: Buy
+            is_final_side_buy_is_first --> is_final_buy_write_smaller_is_first: Yes
+            is_final_side_buy_is_first --> is_final_buy_write_larger_is_not_first: No
+
+            is_final_side --> is_final_side_sell_is_first: Sell
+            is_final_side_sell_is_first --> is_final_sell_write_larger_is_first: Yes
+            is_final_side_sell_is_first --> is_final_sell_write_smaller_is_not_first: No
+
+            is_final_edit --> not_final_side: No
+            not_final_side --> not_final_buy_dir: Buy
+            not_final_buy_dir --> not_final_buy_write_smaller: Left
+            not_final_buy_dir --> not_final_buy_write_larger: Right
+
+            not_final_side --> not_final_sell_dir: Sell
+            not_final_sell_dir --> not_final_sell_write_smaller: Left
+            not_final_sell_dir --> not_final_sell_write_larger: Right
+
+        ' Delete
+        order_type --> is_last_del: Delete
+        is_last_del --> delete_last: Yes
+        is_last_del --> read_next_del: No
+
+        ' Other
+        order_type -right-> exit_2: other
+
+    state "Mode?" as mode
+    state "Just Write?" as just_write
+    state "<B>Write and Exit</B>" as exit_1 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xC0</B></color>
+
+    state "Order Type?" as order_type
+        ' Add
+        state "Is Last?" as is_last_add
+            state "<B>Write and Append</B>" as write_n_append #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xCD</B></color>
+            state "<B>Shift</B>" as shift_1 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xCC</B></color>
+        ' Edit
+        state "Is Final Shift?" as is_final_edit
+            state "Side?" as is_final_side
+                state "Is First?" as is_final_side_buy_is_first
+                    state "<B>Write Smaller</B>" as is_final_buy_write_smaller_is_first #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x</B></color>
+                    state "<B>Write Larger</B>" as is_final_buy_write_larger_is_not_first #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x</B></color>
+                state "Is First?" as is_final_side_sell_is_first
+                    state "<B>Write Larger</B>" as is_final_sell_write_larger_is_first #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x</B></color>
+                    state "<B>Write Smaller</B>" as is_final_sell_write_smaller_is_not_first #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x</B></color>
+            state "Side?" as not_final_side
+                state "Dir?" as not_final_buy_dir
+                    state "<B>Write Smaller</B>" as not_final_buy_write_smaller #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x</B></color>
+                    state "<B>Write Larger</B>" as not_final_buy_write_larger #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x</B></color>
+                state "Dir?" as not_final_sell_dir
+                    state "<B>Write Smaller</B>" as not_final_sell_write_smaller #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x</B></color>
+                    state "<B>Write Larger</B>" as not_final_sell_write_larger #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x</B></color>
+        ' Delete
+        state "Is Last?" as is_last_del
+            state "<B>Exit(Delete Last)</B>" as delete_last #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xC1</B></color>
+            state "<B>Read Next</B>" as read_next_del #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xC1</B></color>
+
+        ' Other
+        state "<B>Exit</B>" as exit_2 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xCB</B></color>
+
+}}
+]
+
+@enduml
