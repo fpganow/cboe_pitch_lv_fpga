@@ -40,8 +40,8 @@ label Shift[
             not_final_buy_dir --> not_final_buy_write_larger: Right
 
             not_final_side --> not_final_sell_dir: Sell
-            not_final_sell_dir --> not_final_sell_write_smaller: Left
-            not_final_sell_dir --> not_final_sell_write_larger: Right
+            not_final_sell_dir --> not_final_sell_write_larger: Left
+            not_final_sell_dir --> not_final_sell_write_smaller: Right
 
         ' Delete
         order_type --> is_last_del: Delete
@@ -58,28 +58,28 @@ label Shift[
     state "Order Type?" as order_type
         ' Add
         state "Is Last?" as is_last_add
-            state "<B>Write and Append</B>" as write_n_append #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xCD</B></color>
-            state "<B>Shift</B>" as shift_1 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xCC</B></color>
+            state "<B>Write and Append</B>" as write_n_append #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xC2</B></color>
+            state "<B>Shift</B>" as shift_1 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xC1</B></color>
         ' Edit
         state "Is Final Shift?" as is_final_edit
             state "Side?" as is_final_side
                 state "Is First?" as is_final_side_buy_is_first
-                    state "<B>Write Smaller</B>" as is_final_buy_write_smaller_is_first #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x</B></color>
-                    state "<B>Write Larger</B>" as is_final_buy_write_larger_is_not_first #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x</B></color>
+                    state "<B>Write Smaller</B>" as is_final_buy_write_smaller_is_first #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xCA</B></color>
+                    state "<B>Write Larger</B>" as is_final_buy_write_larger_is_not_first #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xC9</B></color>
                 state "Is First?" as is_final_side_sell_is_first
-                    state "<B>Write Larger</B>" as is_final_sell_write_larger_is_first #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x</B></color>
-                    state "<B>Write Smaller</B>" as is_final_sell_write_smaller_is_not_first #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x</B></color>
+                    state "<B>Write Larger</B>" as is_final_sell_write_larger_is_first #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xC8</B></color>
+                    state "<B>Write Smaller</B>" as is_final_sell_write_smaller_is_not_first #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xC7</B></color>
             state "Side?" as not_final_side
                 state "Dir?" as not_final_buy_dir
-                    state "<B>Write Smaller</B>" as not_final_buy_write_smaller #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x</B></color>
-                    state "<B>Write Larger</B>" as not_final_buy_write_larger #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x</B></color>
+                    state "<B>Write Smaller</B>" as not_final_buy_write_smaller #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xC6</B></color>
+                    state "<B>Write Larger</B>" as not_final_buy_write_larger#TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xC5</B></color>
                 state "Dir?" as not_final_sell_dir
-                    state "<B>Write Smaller</B>" as not_final_sell_write_smaller #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x</B></color>
-                    state "<B>Write Larger</B>" as not_final_sell_write_larger #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x</B></color>
+                    state "<B>Write Larger</B>" as not_final_sell_write_larger #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xC4</B></color>
+                    state "<B>Write Smaller</B>" as not_final_sell_write_smaller #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xC3</B></color>
         ' Delete
         state "Is Last?" as is_last_del
             state "<B>Exit(Delete Last)</B>" as delete_last #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xC1</B></color>
-            state "<B>Read Next</B>" as read_next_del #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xC1</B></color>
+            state "<B>Write and Read Next</B>" as read_next_del #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xC2</B></color>
 
         ' Other
         state "<B>Exit</B>" as exit_2 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xCB</B></color>

@@ -1,0 +1,31 @@
+@startuml 05_conf_get_everything.watchlist
+hide empty description
+
+title Configuration - Get.Everything - Watchlist
+
+label Conf.Get.Everything.Watchlist[
+{{
+    hide empty description
+        <style> 
+    stateDiagram {
+        LineColor Black
+        LineThickness 3.0
+    }
+    </style>
+
+    'side_1 -[#green]-> buy_1: Buy
+    [*] --> first_call
+    first_call --> request_first: Yes
+    first_call --> val_ready: No
+        val_ready --> save_sym: Yes
+        val_ready --> noop: No
+
+    'state "<B>Noop</B>" as noop #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xA2</B></color>
+    state "First Call?" as first_call
+        state "<B>Request 1st Symbols</B>" as request_first #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x70</B></color>
+        state "Value Ready?" as val_ready
+            state "<B>Save to Memory, mode=buy.iter</B>" as save_sym #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x71</B></color>
+            state "<B>Noop</B>" as noop #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x72</B></color>
+}}
+]
+@enduml

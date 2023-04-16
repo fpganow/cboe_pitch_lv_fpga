@@ -1,0 +1,39 @@
+@startuml 06_conf_get_everything.buy.iter
+hide empty description
+
+title Configuration - Get.Everything - Buy Iter
+
+label Conf.Get.Everything.buy.iter[
+{{
+    hide empty description
+        <style> 
+    stateDiagram {
+        LineColor Black
+        LineThickness 3.0
+    }
+    </style>
+
+    [*] --> first_call
+    first_call --> 0_orders: Yes
+        0_orders --> write_0_n_switch: Yes
+        0_orders --> write_size_n_read: No
+    first_call --> val_ready: No
+        val_ready --> last_buy: Yes
+            last_buy --> write_n_switch: Yes
+            last_buy --> write_n_read: No
+        val_ready --> noop: No
+
+    state "First Call?" as first_call
+        state "0 Orders?" as 0_orders
+            state "<B>Write 0, mode=sell.iter</B>" as write_0_n_switch #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x80</B></color>
+            state "<B>Write size, read 1st Buy</B>" as write_size_n_read #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x81</B></color>
+        state "Value Ready?" as val_ready
+            ' Yes
+            state "Last Buy?" as last_buy
+                state "<B>Write, mode=sell.iter</B>" as write_n_switch #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x83</B></color>
+                state "<B>Write and Read Next</B>" as write_n_read #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x84</B></color>
+            ' No
+            state "<B>Noop</B>" as noop #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x82</B></color>
+}}
+]
+@enduml

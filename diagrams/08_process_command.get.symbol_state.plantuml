@@ -6,57 +6,54 @@ title Process Command\nGet.Symbol
 label Get.Symbol[
 {{
     hide empty description
-    skinparam sequenceArrowThickness 3.0
-    'skinparam LineThickness 12.0
-    'skinparam ClassBorderThickness 12.0
-    'skinparam StateBorderColor 12.0
-    <style> 
+        <style> 
     stateDiagram {
         LineColor Black
-        LineThickness 2.0
+        LineThickness 3.0
     }
     </style>
+    'skinparam sequenceArrowThickness 3.0
 
     [*] --> mode
     mode --> memory_ready: mode = Get.Symbol
+        memory_ready -[#green]> noop: No
+        memory_ready --> symbol_match: Yes
 
-    memory_ready -[#green]> noop: No
-    memory_ready --> symbol_match: Yes
-
+    ' Symbol Matches = Yes
     symbol_match --> 0_orders: Yes
-    symbol_match --> more_symbols: No
-
-    0_orders --> side_1: No
-        side_1 -[#green]-> buy_1: Buy
-        side_1 -[#green]-> sell_1: Sell
+        ' 0 Orders = No
+        0_orders --> side_1: No
+            side_1 -[#green]-> buy_1: Buy
+            side_1 -[#green]-> sell_1: Sell
     0_orders --> is_add: Yes
         is_add --> side_2: Yes
             side_2 -[#green]-> buy_2: Buy
             side_2 -[#green]-> sell_2: Sell
         is_add -[#green]-> exit_1: No
 
-    more_symbols -[#green]-> read_next : Yes
-    more_symbols -[#green]-> exit_2 : No
+    ' Symbol Matches = No
+    symbol_match --> more_symbols: No
+        more_symbols -[#green]-> read_next : Yes
+        more_symbols -[#green]-> exit_2 : No
 
     state "Mode?" as mode
     state "Memory Ready?" as memory_ready
         state "<B>Noop</B>" as noop #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xA2</B></color>
     state "Symbol Matches?" as symbol_match
-    state "More Symbols?" as more_symbols
-    state "<B>Request Next Symbol</B>" as read_next #TECHNOLOGY;line:green;line.bold;text:DarkGreen : <color:DarkGreen>debug: <B>0xA9</B></color>
-    state "<B>Exit</B>" as exit_2 #TECHNOLOGY;line:green;line.bold;text:DarkGreen : <color:DarkGreen>debug: <B>0xA8</B></color>
-
+    ' Symbol Matches = Yes
     state "0 Orders?" as 0_orders
-    state "IsAdd?" as is_add
-    state "Side?" as side_1
-    state "<B>Read 1st Buy</B>" as buy_1 #TECHNOLOGY;line:green;line.bold;text:DarkGreen : <color:DarkGreen>debug: <B>0xA3</B></color>
-    state "<B>Read 1st Sell</B>" as sell_1 #TECHNOLOGY;line:green;line.bold;text:DarkGreen : <color:DarkGreen>debug: <B>0xA4</B></color>
-
-    state "<B>Exit</B>" as exit_1 #TECHNOLOGY;line:green;line.bold;text:DarkGreen : <color:DarkGreen>debug: <B>0xA7</B></color>
-    state "Side?" as side_2
-    state "<B>Add Buy</B>" as buy_2 #TECHNOLOGY;line:green;line.bold;text:DarkGreen : <color:DarkGreen>debug: <B>0xA5</B></color>
-    state "<B>Add Sell</B>" as sell_2 #TECHNOLOGY;line:green;line.bold;text:DarkGreen : <color:DarkGreen>debug: <B>0xA6</B></color>
-
+        state "Side?" as side_2
+            state "<B>Add Buy</B>" as buy_2 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xA5</B></color>
+            state "<B>Add Sell</B>" as sell_2 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xA6</B></color>
+        state "IsAdd?" as is_add
+            state "Side?" as side_1
+                state "<B>Read 1st Buy</B>" as buy_1 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xA3</B></color>
+                state "<B>Read 1st Sell</B>" as sell_1 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xA4</B></color>
+            state "<B>Exit</B>" as exit_1 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xA7</B></color>
+    ' Symbol Matches = No
+    state "More Symbols?" as more_symbols
+        state "<B>Request Next Symbol</B>" as read_next #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xA9</B></color>
+        state "<B>Exit</B>" as exit_2 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xA8</B></color>
 }}
 ]
 

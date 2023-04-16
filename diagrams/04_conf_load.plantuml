@@ -1,0 +1,35 @@
+@startuml 04_conf_load
+hide empty description
+
+title Configuration - Load
+
+label Conf.Load[
+{{
+    hide empty description
+        <style> 
+    stateDiagram {
+        LineColor Black
+        LineThickness 3.0
+    }
+    </style>
+
+    'side_1 -[#green]-> buy_1: Buy
+    [*] --> data_valid
+    data_valid --> first_call: True
+        first_call --> read_count: True
+        first_call --> last_element: False
+            last_element --> write_n_exit: Yes
+            last_element --> write_val: No
+    data_valid --> noop: False
+
+    'state "<B>Noop</B>" as noop #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xA2</B></color>
+    state "Data Valid?" as data_valid
+        state "First Call?" as first_call
+            state "<B>Read # of Symbols</B>" as read_count #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x60</B></color>
+            state "Last Element?" as last_element
+            state "<B>Write and Exit</B>" as write_n_exit #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x61</B></color>
+            state "<B>Write Val</B>" as write_val #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x62</B></color>
+        state "Noop" as noop
+}}
+]
+@enduml

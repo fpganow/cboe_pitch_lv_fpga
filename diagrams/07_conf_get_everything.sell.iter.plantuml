@@ -1,0 +1,49 @@
+@startuml 07_conf_get_everything.sell.iter
+hide empty description
+
+title Configuration - Get.Everything - Sell Iter
+
+label Conf.Get.Everything.sell.iter[
+{{
+    hide empty description
+        <style> 
+    stateDiagram {
+        LineColor Black
+        LineThickness 3.0
+    }
+    </style>
+
+    [*] --> first_call
+    first_call --> 0_orders: Yes
+        0_orders --> last_watchlist_item: Yes
+            last_watchlist_item --> write_0_n_exit: Yes
+            last_watchlist_item --> read_next_sym: No
+        0_orders --> write_size_n_read: No
+'        0_orders --> write_0_n_switch: Yes
+'        0_orders --> write_size_n_read: No
+    first_call --> val_ready: No
+        val_ready --> last_sell: Yes
+            last_sell --> last_watchlist_item_2: Yes
+                last_watchlist_item_2 --> exit_2
+                last_watchlist_item_2 --> read_next_sym_2
+            last_sell --> write_n_read: No
+        val_ready --> noop: No
+
+    state "First Call?" as first_call
+        state "0 Orders?" as 0_orders
+            state "Last Watchlist Item?" as last_watchlist_item
+                state "<B>Write 0 and Exit</B>" as write_0_n_exit #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x90</B></color>
+                state "<B>Read Next Symbol, mode=Watchlist.iter</B>" as read_next_sym #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x91</B></color>
+                state "<B>Write size, read 1st Sell</B>" as write_size_n_read #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x92</B></color>
+        state "Value Ready?" as val_ready
+            ' Yes
+            state "Last Sell?" as last_sell
+                state "Is Last Watchlist Item?" as last_watchlist_item_2
+                    state "<B>Write and Exit</B>" as exit_2 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x94</B></color>
+                    state "<B>Write and Read Next Symbol, mode=Watchlist.iter</B>" as read_next_sym_2 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x95</B></color>
+                state "<B>Write and Read Next</B>" as write_n_read #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x96</B></color>
+            ' No
+            state "<B>Noop</B>" as noop #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0x93</B></color>
+}}
+]
+@enduml
