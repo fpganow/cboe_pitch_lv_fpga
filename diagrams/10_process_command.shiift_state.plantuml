@@ -14,10 +14,17 @@ label Shift[
     </style>
 
     [*] --> mode
-    mode --> just_write: Shift
+    mode --> just_write: Search
     just_write -> exit_1: Yes
+    just_write --> memory_ready: No
 
-    just_write--> order_type: No
+    memory_ready -[#green]> noop: No
+    memory_ready --> order_type: Yes
+
+'    mode --> just_write: Shift
+'    just_write -> exit_1: Yes
+
+'    just_write--> order_type: No
         ' Add
         order_type --> is_last_add: Add
         is_last_add --> write_n_append: Yes
@@ -54,6 +61,7 @@ label Shift[
     state "Mode?" as mode
     state "Just Write?" as just_write
     state "<B>Write and Exit</B>" as exit_1 #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xC0</B></color>
+    state "<B>Noop</B>" as noop #TECHNOLOGY;line:green;text:DarkGreen : <color:DarkGreen>debug: <B>0xC?</B></color>
 
     state "Order Type?" as order_type
         ' Add
