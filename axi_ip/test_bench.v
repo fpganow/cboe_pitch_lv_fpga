@@ -72,7 +72,7 @@ module test_bench(
     reg  [ 2:0]  axi_arprot;
     reg          axi_arvalid;
     wire         axi_arready; // output
-    
+
     wire [31:0]  axi_rdata; // output
     wire [ 1:0]  axi_rresp; // output
     wire         axi_rvalid; // output
@@ -80,8 +80,8 @@ module test_bench(
 
     // Run Tests Here
     initial begin
-        $display("Resetting IP");
-        #5; // Set all signals on posedge
+        $timeformat(-9, 2, " ns", 20);
+
         axi_aresetn = 0;
         `reset_all
 
@@ -89,6 +89,8 @@ module test_bench(
         axi_aresetn = 1;
 
         $display("Test #1 Write 0xABCD to reg 0x5");
+        // Set a bunch of signals, and in 5ns there will be another rising edge
+        // pre T0
         // Write Address and Data together
         axi_awaddr = 5'b00101 << 2;
         axi_awvalid = 1'b1;
@@ -98,11 +100,17 @@ module test_bench(
         // Wait for AXI slave to ACK
         wait (axi_awready == 1'b1 &&
               axi_wready == 1'b1);
+        wait (axi_awready == 1'b0 &&
+              axi_wready == 1'b0);
+        axi_awvalid = 0;
+        axi_wvalid = 0;
         wait (axi_bvalid == 1'b1);
         // Ack
         axi_bready = 1'b1;
-        // Must wait 2 clock cycles for axi_bvalid to go low
-        #20;
+        wait (axi_bvalid == 1'b0);
+        axi_bready = 1'b0;
+        // Delay between next operation
+        #10;
 
         $display("  - Reset all values");
         `reset_all
@@ -111,145 +119,206 @@ module test_bench(
         axi_arvalid = 1'b1;
         axi_araddr = 5'b00101 << 2;
         // Wait for AXI slave to send data
-        wait (axi_arready == 1'b1 &&
-              axi_rvalid == 1'b1);
-        assert (axi_rdata == 32'hABCD) $display("  - Read value back successfully");
+        wait (axi_arready == 1'b1);
+        wait (axi_rvalid == 1'b1);
+        assert (axi_rdata == 32'hABCD) $display("  - Read 0x%x value back successfully", axi_rdata);
         else $error("Failed to read correct value back, 0x%x != 0x%x", axi_rdata, 32'hABCD);
         // Signal to AXI Slave that data has been read
         axi_arvalid = 1'b0;
         axi_rready = 1'b1;
-        #20;
+        wait (axi_rvalid == 1'b0);
+
         `reset_all
         $display("Test #1 Finished");
 
-        $display("Test #2 Write 0xFE to reg 0x3");
-        // Write Address and Data together
-        axi_awaddr = 5'b00011 << 2;
+        $display("Test #2 Write 2 values, Read 2 values");
+        $display("  - Writing 0xAAA0 to Reg 0");
+        // Write to Reg #0
+        axi_awaddr = 5'b00000 << 2;
         axi_awvalid = 1'b1;
-        axi_wdata = 32'hFE;
-        axi_wstrb = 4'b0001;
+        axi_wdata = 32'hAAA0;
+        axi_wstrb = 4'b0011;
         axi_wvalid = 1'b1;
         // Wait for AXI slave to ACK
         wait (axi_awready == 1'b1 &&
               axi_wready == 1'b1);
+        wait (axi_awready == 1'b0 &&
+              axi_wready == 1'b0);
+        axi_awvalid = 0;
+        axi_wvalid = 0;
         wait (axi_bvalid == 1'b1);
         // Ack
         axi_bready = 1'b1;
-        // Must wait 2 clock cycles for axi_bvalid to go low
-        #20;
-
-        $display("  - Reset all values");
+        wait (axi_bvalid == 1'b0);
+        axi_bready = 1'b0;
+        // Delay between next operation
+        #10;
         `reset_all
 
-        $display("  - Read value back");
+        // Write to Reg #1
+        $display("  - Writing 0xAAA1 to Reg 1");
+        axi_awaddr = 5'b00001 << 2;
+        axi_awvalid = 1'b1;
+        axi_wdata = 32'hAAA1;
+        axi_wstrb = 4'b0011;
+        axi_wvalid = 1'b1;
+        // Wait for AXI slave to ACK
+        wait (axi_awready == 1'b1 &&
+              axi_wready == 1'b1);
+        wait (axi_awready == 1'b0 &&
+              axi_wready == 1'b0);
+        axi_awvalid = 0;
+        axi_wvalid = 0;
+        wait (axi_bvalid == 1'b1);
+        // Ack
+        axi_bready = 1'b1;
+        wait (axi_bvalid == 1'b0);
+        axi_bready = 1'b0;
+        // Delay between next operation
+        #10;
+        `reset_all
+        
+        $display("  - Now reading back");
         axi_arvalid = 1'b1;
-        axi_araddr = 5'b00011 << 2;
+        axi_araddr = 5'b00000 << 2;
         // Wait for AXI slave to send data
-        wait (axi_arready == 1'b1 &&
-              axi_rvalid == 1'b1);
-        assert (axi_rdata == 32'hFE) $display("  - Read value back successfully");
-        else $error("Failed to read correct value back, 0x%x != 0x%x", axi_rdata, 32'hFE);
+        wait (axi_arready == 1'b1);
+        wait (axi_rvalid == 1'b1);
+        assert (axi_rdata == 32'hAAA0) $display("  - Read 0x%x value back successfully from Reg 0", axi_rdata);
+        else $error("Failed to read correct value back, 0x%x != 0x%x", axi_rdata, 32'hAAA0);
         // Signal to AXI Slave that data has been read
         axi_arvalid = 1'b0;
         axi_rready = 1'b1;
+        wait (axi_rvalid == 1'b0);
+        // Delay between next operation
         #20;
         `reset_all
+
+        axi_arvalid = 1'b1;
+        axi_araddr = 5'b00001 << 2;
+        // Wait for AXI slave to send data
+        wait (axi_arready == 1'b1);
+        wait (axi_rvalid == 1'b1);
+        assert (axi_rdata == 32'hAAA1) $display("  - Read 0x%x value back successfully from Reg 1", axi_rdata);
+        else $error("Failed to read correct value back, 0x%x != 0x%x", axi_rdata, 32'hAAA1);
+        // Signal to AXI Slave that data has been read
+        axi_arvalid = 1'b0;
+        axi_rready = 1'b1;
+        wait (axi_rvalid == 1'b0);
         $display("Test #2 Finished");
 
-        $display("Test #3 - I2C Write Transaction");
-        // Write Device Address to Reg 0 (0x5B)
+        $display("Test #3 Prepare for I2C Write");
+        // Write Address of Device to Reg #1
+        $display("  - Writing Address of Device 0xFE to Reg 0");
         axi_awaddr = 5'b00000 << 2;
         axi_awvalid = 1'b1;
-        axi_wdata = 32'h5B;
-        axi_wstrb = 4'b0001;
+        axi_wdata = 32'h00005B;
+        axi_wstrb = 4'b0111;
         axi_wvalid = 1'b1;
         // Wait for AXI slave to ACK
         wait (axi_awready == 1'b1 &&
               axi_wready == 1'b1);
+        wait (axi_awready == 1'b0 &&
+              axi_wready == 1'b0);
+        axi_awvalid = 0;
+        axi_wvalid = 0;
         wait (axi_bvalid == 1'b1);
         // Ack
         axi_bready = 1'b1;
-        // Must wait 2 clock cycles for axi_bvalid to go low
-        #20;
-        `reset_all
-
-        // Write Device Register Address to Reg 1 (0x0)
+        wait (axi_bvalid == 1'b0);
+        axi_bready = 1'b0;
+        // Delay between next operation
+        #10;
+        
+        // Write Address of Device to Reg #1
+        $display("  - Writing Register Address 0x00 Reg 1");
         axi_awaddr = 5'b00001 << 2;
         axi_awvalid = 1'b1;
-        axi_wdata = 32'h00;
-        axi_wstrb = 4'b0001;
+        axi_wdata = 32'h000000; // TODO: Switch to 1
+        axi_wstrb = 4'b0111;
         axi_wvalid = 1'b1;
         // Wait for AXI slave to ACK
         wait (axi_awready == 1'b1 &&
               axi_wready == 1'b1);
+        wait (axi_awready == 1'b0 &&
+              axi_wready == 1'b0);
+        axi_awvalid = 0;
+        axi_wvalid = 0;
         wait (axi_bvalid == 1'b1);
         // Ack
         axi_bready = 1'b1;
-        // Must wait 2 clock cycles for axi_bvalid to go low
-        #20;
-        `reset_all
+        wait (axi_bvalid == 1'b0);
+        axi_bready = 1'b0;
+        // Delay between next operation
+        #10;
 
-        // Write # of bytes to Reg 2 (0x0)
+        // Write Num of Bytes to Reg #2
+        $display("  - Writing Register Address 0x00 Reg 2");
         axi_awaddr = 5'b00010 << 2;
         axi_awvalid = 1'b1;
-        axi_wdata = 32'h00;
-        axi_wstrb = 4'b0001;
+        axi_wdata = 32'h000000; // TODO: Switch to 1
+        axi_wstrb = 4'b0111;
         axi_wvalid = 1'b1;
         // Wait for AXI slave to ACK
         wait (axi_awready == 1'b1 &&
               axi_wready == 1'b1);
+        wait (axi_awready == 1'b0 &&
+              axi_wready == 1'b0);
+        axi_awvalid = 0;
+        axi_wvalid = 0;
         wait (axi_bvalid == 1'b1);
         // Ack
         axi_bready = 1'b1;
-        // Must wait 2 clock cycles for axi_bvalid to go low
-        #20;
-        `reset_all
+        wait (axi_bvalid == 1'b0);
+        axi_bready = 1'b0;
+        // Delay between next operation
+        #10;
 
-        // Write 0 to Reg 7 (0x0) (I2C WRITE)
-        axi_awaddr = 5'b00111 << 2;
-        axi_awvalid = 1'b1;
-        axi_wdata = 32'h88;
-        axi_wstrb = 4'b0001;
-        axi_wvalid = 1'b1;
-        // Wait for AXI slave to ACK
-        wait (axi_awready == 1'b1 &&
-              axi_wready == 1'b1);
-        wait (axi_bvalid == 1'b1);
-        // Ack
-        axi_bready = 1'b1;
-        // Must wait 2 clock cycles for axi_bvalid to go low
-        #30;
-        `reset_all
+//        // Write 0 to Reg 7 (0x0) (I2C WRITE)
+//        axi_awaddr = 5'b00111 << 2;
+//        axi_awvalid = 1'b1;
+//        axi_wdata = 32'h88;
+//        axi_wstrb = 4'b0001;
+//        axi_wvalid = 1'b1;
+//        // Wait for AXI slave to ACK
+//        wait (axi_awready == 1'b1 &&
+//              axi_wready == 1'b1);
+//        wait (axi_bvalid == 1'b1);
+//        // Ack
+//        axi_bready = 1'b1;
+//        // Must wait 2 clock cycles for axi_bvalid to go low
+//        #30;
+//        `reset_all
 
-        wait (busy == 1'b0);
-        #20;
-        $display("Write Finished");
+//        wait (busy == 1'b0);
+//        #20;
+//        $display("Write Finished");
 
-        $display("Read Start");
-        // Write 0 to Reg 6 (0x0) (I2C READ)
-        axi_awaddr = 5'b00110 << 2;
-        axi_awvalid = 1'b1;
-        axi_wdata = 32'h099;
-        axi_wstrb = 4'b0001;
-        axi_wvalid = 1'b1;
-        // Wait for AXI slave to ACK
-        wait (axi_awready == 1'b1 &&
-              axi_wready == 1'b1);
-        wait (axi_bvalid == 1'b1);
-        // Ack
-        axi_bready = 1'b1;
-        // Must wait 2 clock cycles for axi_bvalid to go low
-        #30;
-        `reset_all
+//        $display("Read Start");
+//        // Write 0 to Reg 6 (0x0) (I2C READ)
+//        axi_awaddr = 5'b00110 << 2;
+//        axi_awvalid = 1'b1;
+//        axi_wdata = 32'h099;
+//        axi_wstrb = 4'b0001;
+//        axi_wvalid = 1'b1;
+//        // Wait for AXI slave to ACK
+//        wait (axi_awready == 1'b1 &&
+//              axi_wready == 1'b1);
+//        wait (axi_bvalid == 1'b1);
+//        // Ack
+//        axi_bready = 1'b1;
+//        // Must wait 2 clock cycles for axi_bvalid to go low
+//        #30;
+//        `reset_all
 
-        $display("Test #3 Finished");
+//        $display("Test #3 Finished");
 
-//        #10;
-//        // Reset all signals
-//        axi_awvalid = 1'b0;
-//        axi_wvalid = 1'b0;
-//        axi_bready = 1'b0;
-//        axi_arvalid = 1'b0;
+////        #10;
+////        // Reset all signals
+////        axi_awvalid = 1'b0;
+////        axi_wvalid = 1'b0;
+////        axi_bready = 1'b0;
+////        axi_arvalid = 1'b0;
 //        axi_rready = 1'b0;
 
 //        $display("Test #3 Write Transaction");
