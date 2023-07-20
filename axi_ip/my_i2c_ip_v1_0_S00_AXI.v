@@ -513,7 +513,7 @@
 	                       begin
 	                           // WRITING - reset requence to prevent
 	                           // a second write request
-                                slave_addr <= 8'b00000000;
+                                slave_addr <= (8'h5B << 1);
                                 i_sub_addr <= 16'h0000;
                                 i_sub_len <= 1'b0;
                                 i_byte_len <= 24'h000000;
