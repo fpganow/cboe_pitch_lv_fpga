@@ -299,8 +299,8 @@
 	                // Slave register 6
 	                slv_reg6[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 	              end
-	              i2c_read_en <= 1'b1;
-	              i2c_reading <= 1'b0;
+//	              i2c_read_en <= 1'b1;
+//	              i2c_reading <= 1'b0;
 	            end  
 	          3'h7:
 	            begin
@@ -504,7 +504,7 @@
 	                           slave_addr <= (slv_reg0[7:0] << 1) | 0; // 0 means write
                                i_sub_addr <= slv_reg1[7:0];
                                i_sub_len <= 1'b0; // 0 = 8-bit
-                               i_byte_len <= 24'h000000;
+                               i_byte_len <= 24'h000001;
                                i_data_write <= 8'h00;
                                request_transmit <= 1'b1;
                                i2c_writing <= 1'b1;
