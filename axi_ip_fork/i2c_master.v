@@ -25,7 +25,7 @@
 
 //`define DEBUG
 `timescale 1fs/1fs
-module i2c_master(input             i_clk,              //input clock to the module @100MHz (or whatever crystal you have on the board)
+(* dont_touch="true" *) module i2c_master(input             i_clk,              //input clock to the module @100MHz (or whatever crystal you have on the board)
                   input             reset_n,            //reset for creating a known start condition
                   input      [7:0]  i_addr_w_rw,        //7 bit address, LSB is the read write bit, with 0 being write, 1 being read
                   input      [15:0] i_sub_addr,         //contains sub addr to send to slave, partition is decided on bit_sel
@@ -35,17 +35,17 @@ module i2c_master(input             i_clk,              //input clock to the mod
                   input             req_trans,          //denotes when to start a new transaction
  
                   /** For Reads **/
-                  output reg [7:0]  data_out,
-                  output reg        valid_out,
+(* dont_touch="true" *)                  output reg [7:0]  data_out,
+(* dont_touch="true" *)                  output reg        valid_out,
 
                   /** I2C Lines **/
-                  inout             scl_o,              //i2c clck line, output by this module, 400 kHz
-                  inout             sda_o,              //i2c data line, set to 1'bz when not utilized (resistors will pull it high)
+(* dont_touch="true" *)                  inout             scl_o,              //i2c clck line, output by this module, 400 kHz
+(* dont_touch="true" *)                  inout             sda_o,              //i2c data line, set to 1'bz when not utilized (resistors will pull it high)
 
                   /** Comms to Master Module **/
-                  output reg        req_data_chunk ,    //Request master to send new data chunk in i_data_write
-                  output reg        busy,               //denotes whether module is currently communicating with a slave
-                  output reg        nack                //denotes whether module is encountering a nack from slave (only activates when master is attempting to contact device)
+(* dont_touch="true" *)                  output reg        req_data_chunk ,    //Request master to send new data chunk in i_data_write
+(* dont_touch="true" *)                  output reg        busy,               //denotes whether module is currently communicating with a slave
+(* dont_touch="true" *)                  output reg        nack                //denotes whether module is encountering a nack from slave (only activates when master is attempting to contact device)
 
 //                  `ifdef DEBUG
 //                  ,

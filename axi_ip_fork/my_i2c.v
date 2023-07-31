@@ -1,10 +1,10 @@
 `timescale 1 ns / 1 ps
 
-	module my_axi_ip_2_v1_0 #
+(* dont_touch="true" *) module my_i2c #
 	(
 		// Users to add parameters here
 
-		// User parameters ends
+		// User parameters emy_axi_ip_2_v1_0 (my_i2c.v)nds
 		// Do not modify the parameters beyond this line
 
 
@@ -14,11 +14,10 @@
 	)
 	(
 		// Users to add ports here
-        inout wire scl_io,
-        inout wire sda_io,
+(* dont_touch="true" *)        inout wire scl_io,
+(* dont_touch="true" *)        inout wire sda_io,
 		// User ports ends
 		// Do not modify the ports beyond this line
-
 
 		// Ports of Axi Slave Bus Interface S00_AXI
 		input wire  s00_axi_aclk,
@@ -44,10 +43,10 @@
 		input wire  s00_axi_rready
 	);
 // Instantiation of Axi Bus Interface S00_AXI
-	my_i2c_ip_v1_0_S00_AXI # ( 
+	my_i2c_S00_AXI # ( 
 		.C_S_AXI_DATA_WIDTH(C_S00_AXI_DATA_WIDTH),
 		.C_S_AXI_ADDR_WIDTH(C_S00_AXI_ADDR_WIDTH)
-	) my_axi_ip_2_v1_0_S00_AXI_inst (
+	) my_i2c_S00_AXI_inst (
 		.S_AXI_ACLK(s00_axi_aclk),
 		.S_AXI_ARESETN(s00_axi_aresetn),
 

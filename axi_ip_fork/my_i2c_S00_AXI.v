@@ -1,7 +1,7 @@
 
 `timescale 1 ns / 1 ps
 
-module my_i2c_ip_v1_0_S00_AXI #
+(* dont_touch="true" *) module my_i2c_S00_AXI #
 	(
 		// Users to add parameters here
 
@@ -15,8 +15,8 @@ module my_i2c_ip_v1_0_S00_AXI #
 	)
 	(
 		// Users to add ports here
-        inout scl_io,
-        inout sda_io,
+(* dont_touch="true" *)        inout scl_io,
+(* dont_touch="true" *)        inout sda_io,
         output wire req_data_chunk,
         output wire busy,
         output wire nack,
