@@ -2,45 +2,47 @@
 
 (* dont_touch="true" *) module my_i2c #
 	(
-		// Users to add parameters here
-
-		// User parameters emy_axi_ip_2_v1_0 (my_i2c.v)nds
-		// Do not modify the parameters beyond this line
-
-
 		// Parameters of Axi Slave Bus Interface S00_AXI
 		parameter integer C_S00_AXI_DATA_WIDTH	= 32,
 		parameter integer C_S00_AXI_ADDR_WIDTH	= 6
 	)
 	(
 		// Users to add ports here
-(* dont_touch="true" *)        inout wire scl_io,
-(* dont_touch="true" *)        inout wire sda_io,
-		// User ports ends
-		// Do not modify the ports beyond this line
-
+        // I2C
+        input  wire my_scl_i,
+        output wire my_scl_o,
+        output wire my_scl_t,
+        input  wire my_sda_i,
+        output wire my_sda_o,
+        output wire my_sda_t,
+        // Debug Lines
+        output wire dbg2_i2c_write_en,
+        output wire dbg2_i2c_read_en,
+        output wire dbg2_busy,
+        output wire dbg2_req_data_chunk,
+        output wire dbg2_nack,
 		// Ports of Axi Slave Bus Interface S00_AXI
-		input wire  s00_axi_aclk,
-		input wire  s00_axi_aresetn,
-		input wire [C_S00_AXI_ADDR_WIDTH-1 : 0] s00_axi_awaddr,
-		input wire [2 : 0] s00_axi_awprot,
-		input wire  s00_axi_awvalid,
-		output wire  s00_axi_awready,
-		input wire [C_S00_AXI_DATA_WIDTH-1 : 0] s00_axi_wdata,
-		input wire [(C_S00_AXI_DATA_WIDTH/8)-1 : 0] s00_axi_wstrb,
-		input wire  s00_axi_wvalid,
-		output wire  s00_axi_wready,
-		output wire [1 : 0] s00_axi_bresp,
-		output wire  s00_axi_bvalid,
-		input wire  s00_axi_bready,
-		input wire [C_S00_AXI_ADDR_WIDTH-1 : 0] s00_axi_araddr,
-		input wire [2 : 0] s00_axi_arprot,
-		input wire  s00_axi_arvalid,
-		output wire  s00_axi_arready,
-		output wire [C_S00_AXI_DATA_WIDTH-1 : 0] s00_axi_rdata,
-		output wire [1 : 0] s00_axi_rresp,
-		output wire  s00_axi_rvalid,
-		input wire  s00_axi_rready
+		input wire                                   s00_axi_aclk,
+		input wire                                   s00_axi_aresetn,
+		input wire     [C_S00_AXI_ADDR_WIDTH-1 : 0]  s00_axi_awaddr,
+		input wire                          [2 : 0]  s00_axi_awprot,
+		input wire                                   s00_axi_awvalid,
+		output wire                                  s00_axi_awready,
+		input wire     [C_S00_AXI_DATA_WIDTH-1 : 0]  s00_axi_wdata,
+		input wire [(C_S00_AXI_DATA_WIDTH/8)-1 : 0]  s00_axi_wstrb,
+		input wire                                   s00_axi_wvalid,
+		output wire                                  s00_axi_wready,
+		output wire                         [1 : 0]  s00_axi_bresp,
+		output wire                                  s00_axi_bvalid,
+		input wire                                   s00_axi_bready,
+		input wire     [C_S00_AXI_ADDR_WIDTH-1 : 0]  s00_axi_araddr,
+		input wire                          [2 : 0]  s00_axi_arprot,
+		input wire                                   s00_axi_arvalid,
+		output wire                                  s00_axi_arready,
+		output wire    [C_S00_AXI_DATA_WIDTH-1 : 0]  s00_axi_rdata,
+		output wire                         [1 : 0]  s00_axi_rresp,
+		output wire                                  s00_axi_rvalid,
+		input wire                                   s00_axi_rready
 	);
 // Instantiation of Axi Bus Interface S00_AXI
 	my_i2c_S00_AXI # ( 
@@ -50,8 +52,19 @@
 		.S_AXI_ACLK(s00_axi_aclk),
 		.S_AXI_ARESETN(s00_axi_aresetn),
 
-		.scl_io(scl_io),
-		.sda_io(sda_io),
+        // I2C clock lines
+        .scl_io_i(my_scl_i),
+        .scl_io_o(my_scl_o),
+        .scl_io_t(my_scl_t),
+        // I2C data lines
+        .sda_io_i(my_sda_i),
+        .sda_io_o(my_sda_o),
+        .sda_io_t(my_sda_t),
+        .i2c_write_en(dbg2_i2c_write_en),
+        .i2c_read_en(dbg2_i2c_read_en),
+        .dbg_busy(dbg2_busy),
+        .dbg_req_data_chunk(dbg2_req_data_chunk),
+        .dbg_nack(dbg2_nack),
 
 		.S_AXI_AWADDR(s00_axi_awaddr),
 		.S_AXI_AWPROT(s00_axi_awprot),
