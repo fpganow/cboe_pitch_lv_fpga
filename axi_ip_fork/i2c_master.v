@@ -82,7 +82,8 @@ localparam [3:0] IDLE        = 4'd0,
                  RELEASE_BUS = 4'hB;
 
 // Modify These Parameters for other targets
-localparam [15:0] DIV_100MHZ = 16'd125;   // Desire 400KHz, have 100MHz, thus (1/(400*10^3)*100*10^6)/2,
+//localparam [15:0] DIV_100MHZ = 16'd125;   // Desire 400KHz, have 100MHz, thus (1/(400*10^3)*100*10^6)/2,
+localparam [15:0] DIV_100MHZ = 16'd500;   // Desire 100KHz, have 100MHz, 
                                           // note div by 2 is for need to change in cycle
 localparam [7:0]  START_IND_SETUP  = 70,  // Time before negedge of scl
                   START_IND_HOLD   = 60,  // Time after posedge of clock when start occurs (not used)
@@ -546,7 +547,7 @@ always@(negedge i_clk or negedge reset_n) begin
         {scl_curr, scl_prev} <= 0;
     end
     else begin
-        sda_curr <= {sda_curr[0], sda_io_o};  //2 flip flop synchronization chain
+        sda_curr <= {sda_curr[0], sda_io_i};  //2 flip flop synchronization chain
         sda_prev <= sda_curr[1];
         scl_curr <= clk_i2c;
         scl_prev <= scl_curr;
