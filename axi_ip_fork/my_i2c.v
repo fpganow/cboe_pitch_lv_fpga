@@ -16,6 +16,8 @@
         output wire my_sda_o,
         output wire my_sda_t,
         // Debug Lines
+        output wire dbg2_data_out,
+        output wire dbg2_valid_out,
         output wire dbg2_i2c_write_en,
         output wire dbg2_i2c_read_en,
         output wire dbg2_busy,
@@ -60,6 +62,8 @@
         .sda_io_i(my_sda_i),
         .sda_io_o(my_sda_o),
         .sda_io_t(my_sda_t),
+        .dbg_data_out(dbg2_data_out),
+        .dbg_valid_out(dbg2_valid_out),
         .i2c_write_en(dbg2_i2c_write_en),
         .i2c_read_en(dbg2_i2c_read_en),
         .dbg_busy(dbg2_busy),

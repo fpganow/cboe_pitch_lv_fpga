@@ -20,6 +20,8 @@
         input  wire sda_io_i,
         output wire sda_io_o,
         output wire sda_io_t,
+        output wire dbg_data_out,
+        output wire dbg_valid_out,
         output reg i2c_write_en,
         output reg i2c_read_en,
         output wire dbg_req_data_chunk,
@@ -156,6 +158,8 @@
 	// axi_awready is asserted for one S_AXI_ACLK clock cycle when both
 	// S_AXI_AWVALID and S_AXI_WVALID are asserted. axi_awready is
 	// de-asserted when reset is low.
+    assign dbg_data_out = data_out;
+    assign dbg_valid_out = valid_out;
     assign dbg_req_data_chunk = req_data_chunk;
     assign dbg_busy = busy;
     assign dbg_nack = nack;
@@ -331,10 +335,12 @@
 	              end
 	            end  
 	          4'h7:
-	            begin
-                  slv_reg7 <= slv_reg7 + 7;
-	              i2c_write_en <= 1'b1;
-	            end  
+	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
+	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
+	                // Respective byte enables are asserted as per write strobes 
+	                // Slave register 7
+	                slv_reg7[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
+	              end  
 	          4'h8:
 	            begin
 //	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
@@ -344,6 +350,7 @@
 //	                slv_reg8[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 //	              end
 	              slv_reg8 <= slv_reg8 + 1;
+	              i2c_write_en <= 1'b1;
 	            end
 	          4'h9:
 	            begin
@@ -481,7 +488,7 @@
 	          axi_arready <= 1'b1;
 	          // Read address latching
 	          axi_araddr  <= S_AXI_ARADDR;
-              if ( axi_araddr == (5'b00111 << 2) )
+              if ( S_AXI_ARADDR == (5'b00111 << 2) )
                 begin
                   // I2C: Read Transaction starting
                   // Set i2c_read_en
@@ -497,6 +504,7 @@
         if (i2c_read_finished)
           begin
             i2c_read_en <= 1'b0;
+            i2c_reading <= 1'b0;
           end
 	end
 
@@ -561,21 +569,7 @@
             request_transmit   <=         1'b0;
         end
         else begin
-            if (axi_arready && S_AXI_ARVALID && ~axi_rvalid) begin
-                // Valid read data is available at the read data bus
-                axi_rvalid <= 1'b1;
-                axi_rresp  <= 2'b0; // 'OKAY' response
-            end else if (axi_rvalid && S_AXI_RREADY) begin
-                // Read data is accepted by the master
-                axi_rvalid <= 1'b0;
-            end
-
-            // When there is a valid read address (S_AXI_ARVALID) with 
-            // acceptance of read address by the slave (axi_arready), 
-            // output the read dada 
-            if (slv_reg_rden) begin
-                axi_rdata <= reg_data_out;     // register read data
-            end if (!i2c_write_en) begin
+            if (!i2c_write_en) begin
                 i2c_writing <= 1'b0;
                 i2c_write_finished <= 1'b0;
             end if (i2c_write_en && !i2c_write_finished) begin
@@ -604,12 +598,26 @@
                     i2c_writing <= 1'b0;
                 end
             end // end if (i2c_write_en && !i2c_write_finished)
+
+            // No read
+            if (!slv_reg_rden & !i2c_read_en) begin
+                axi_rvalid <= 1'b0;
+            end
+            //  slv_reg_rden = (axi_arready && S_AXI_ARVALID && ~axi_rvalid)
+            // Regular Read
+            if (slv_reg_rden & !i2c_read_en) begin
+                axi_rdata <= reg_data_out;     // register read data
+                axi_rvalid <= 1'b1;
+                axi_rresp  <= 2'b0; // 'OKAY' response
+            end
+
             if (!i2c_read_en) begin
-                    i2c_reading <= 1'b0;
-                    i2c_read_finished <= 1'b0;
+                i2c_reading <= 1'b0;
+                i2c_read_finished <= 1'b0;
             end if (i2c_read_en & !i2c_read_finished) begin
                 // Handle Response Loop
-                if (busy && valid_out && !S_AXI_RREADY) begin
+                // Q: Are busy and valid_out valid at the same time?
+                if (valid_out && !S_AXI_RREADY) begin
                     axi_rvalid <= 1'b1;
                     axi_rresp  <= 2'b0; // 'OKAY' response
                     axi_rdata <= data_out;
@@ -622,7 +630,8 @@
                     slave_addr <= (slv_reg0[7:0] << 1) | 1; // 1 means read
                     i_sub_addr <= slv_reg1[7:0];
                     i_sub_len <= 1'b0; // 0 = 8-bit
-                    i_byte_len <= 24'h000002;
+                    i_byte_len <= slv_reg2[7:0];
+                    //i_byte_len <= 24'h000002;
                     i_data_write <= 8'h00;
                     request_transmit <= 1'b1;
                     i2c_reading <= 1'b1;
@@ -639,9 +648,9 @@
                     // Transaction is over
                     i2c_reading <= 1'b0;
                     // Copy read data
-                    axi_rdata <= data_out;
-                    axi_rvalid <= 1'b1;
-                    axi_rresp  <= 2'b0; // 'OKAY' response
+                    //axi_rdata <= data_out;
+                    //axi_rvalid <= 1'b1;
+                    //axi_rresp  <= 2'b0; // 'OKAY' response
                     i2c_read_finished  <=  1'b1;
                 end
             end

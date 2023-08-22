@@ -82,7 +82,7 @@ module my_i2c_tb();
         #50;
         axi_aresetn = 1;
 
-        $display("Test #1 Write 0xABCD to Reg $5");
+        $display("Test #1 Write 0xABCD to Reg #5");
         // Write Address and Data together
         axi_awaddr = 6'b000101 << 2;
         axi_awvalid = 1'b1;
@@ -155,10 +155,10 @@ module my_i2c_tb();
         `reset_all_signals
 
         // Write Sub-Address to Reg #1
-        $display("  - Writing Register Address 0x00 Reg 1");
+        $display("  - Writing Register Address 0x20 Reg 1");
         axi_awaddr = 6'b000001 << 2;
         axi_awvalid = 1'b1;
-        axi_wdata = 32'h000000;
+        axi_wdata = 32'h20;
         axi_wstrb = 4'b0111;
         axi_wvalid = 1'b1;
         // Wait for AXI slave to ACK
@@ -185,7 +185,7 @@ module my_i2c_tb();
         $display("  - Writing Length to Reg 3");
         axi_awaddr = 6'b000010 << 2;
         axi_awvalid = 1'b1;
-        axi_wdata = 32'h000000;
+        axi_wdata = 32'h000002;
         axi_wstrb = 4'b0111;
         axi_wvalid = 1'b1;
         // Wait for AXI slave to ACK
@@ -207,27 +207,15 @@ module my_i2c_tb();
         // Reset all signals
         `reset_all_signals
 
-        // Kick off write by writing to Reg 7
-        $display("  - Starting I2C by writing to Reg 7");
-        axi_awaddr = 6'b000111 << 2;
-        axi_awvalid = 1'b1;
-        axi_wdata = 32'h000000;
-        axi_wstrb = 4'b0111;
-        axi_wvalid = 1'b1;
+        // Do I2C Read by reading from Reg 7
+        $display("  - Starting I2C by reading from Reg 7");
+        axi_araddr = 6'b000111 << 2;
+        axi_arvalid = 1'b1;
         // Wait for AXI slave to ACK
-        wait (axi_awready == 1'b1 &&
-              axi_wready == 1'b1);
-        wait (axi_awready == 1'b0 &&
-              axi_wready == 1'b0);
-        // Stop writing address and data
-        axi_awvalid = 0;
-        axi_wvalid = 0;
-        // Wait for slave to ACK response
-        wait (axi_bvalid == 1'b1);
-        // Send ack to slave
-        axi_bready = 1'b1;
-        wait (axi_bvalid == 1'b0);
-        axi_bready = 1'b0;
+        // Wait for AXI slave to send data
+        wait (axi_arready == 1'b1);
+        wait (axi_rvalid == 1'b1);
+
         // Delay between next operation
         #10;
         // Reset all signals
@@ -254,6 +242,7 @@ module my_i2c_tb();
             .my_sda_t(my_sda_t),
             // Debug Lines
             .dbg2_i2c_write_en(dbg2_i2c_write_en),
+            .dbg2_i2c_read_en(dbg2_i2c_read_en),
             .dbg2_busy(dbg2_busy),
             .dbg2_req_data_chunk(dbg2_req_data_chunk),
             .dbg2_nack(dbg2_nack),
