@@ -1,6 +1,5 @@
 `timescale 1 ns / 1 ps
-
-//(* dont_touch="true" *)
+(* dont_touch="true" *)
 module my_axi_ip #
 	(
 		// Parameters of Axi Slave Bus Interface S00_AXI
@@ -8,22 +7,30 @@ module my_axi_ip #
 		parameter integer C_S00_AXI_ADDR_WIDTH	= 6
 	)
 	(
-		// Users to add ports here
-//      // I2C
-//        input  wire my_scl_i,
-//        output wire my_scl_o,
-//        output wire my_scl_t,
-//        input  wire my_sda_i,
-//        output wire my_sda_o,
-//        output wire my_sda_t,
-//      // Debug Lines
-//        output wire dbg2_data_out,
-//        output wire dbg2_valid_out,
-//        output wire dbg2_i2c_write_en,
-//        output wire dbg2_i2c_read_en,
-//        output wire dbg2_busy,
-//        output wire dbg2_req_data_chunk,
-//        output wire dbg2_nack,
+		// My Ports
+        // UART
+        (* dont_touch="true" *) input  wire uart_rxd,
+        (* dont_touch="true" *) output wire uart_txd,
+        (* dont_touch="true" *) output wire uart_clk_edge,
+        (* dont_touch="true" *) output reg uart_clk,
+        (* dont_touch="true" *) output wire o_SM_Main_0,
+        (* dont_touch="true" *) output wire o_SM_Main_1,
+        output wire o_SM_Main_2,
+        // Debug Lines
+        output wire             dbg_uart_write_en,
+        output wire              dbg_uart_writing,
+        output wire [7:0]     dbg_uart_write_data,
+        output wire       dbg_uart_write_finished,
+
+        output wire              dbg_uart_read_en,
+        output wire              dbg_uart_reading,
+        output wire [7:0]      dbg_uart_read_data,
+        output wire        dbg_uart_read_finished,
+
+        output wire dbg_o_tx_active,
+        output wire dbg_o_tx_serial,
+        output wire dbg_o_tx_done,
+
 		// Ports of Axi Slave Bus Interface S00_AXI
 		input wire                                   s00_axi_aclk,
 		input wire                                   s00_axi_aresetn,
@@ -47,29 +54,51 @@ module my_axi_ip #
 		output wire                                  s00_axi_rvalid,
 		input wire                                   s00_axi_rready
 	);
+
+    reg [27:0] counter = 28'd0;
+    // 100 MHZ
+    // 100,000,000
+    // 1,000 = 100,000,000 / 100,000
+    reg DIVISOR = 100000'd2;
+	always @(posedge s00_axi_aclk) begin
+	   counter <= counter + 28'd1;
+	   if(counter >= (DIVISOR-1))
+	       counter <= 28'd0;
+	   uart_clk <= (counter < DIVISOR / 2) ? 1'b1 : 1'b0; 
+	end
+
+    wire [2:0] o_SM_Main;
+    assign o_SM_Main_0 = o_SM_Main[0];
+    assign o_SM_Main_1 = o_SM_Main[1];
+    assign o_SM_Main_2 = o_SM_Main[2];
+
 // Instantiation of Axi Bus Interface S00_AXI
-	my_i2c_S00_AXI # ( 
+	my_axi_ip_S00_AXI # ( 
 		.C_S_AXI_DATA_WIDTH(C_S00_AXI_DATA_WIDTH),
 		.C_S_AXI_ADDR_WIDTH(C_S00_AXI_ADDR_WIDTH)
-	) my_i2c_S00_AXI_inst (
+	) my_axi_ip_S00_AXI_inst (
 		.S_AXI_ACLK(s00_axi_aclk),
 		.S_AXI_ARESETN(s00_axi_aresetn),
 
-//        // I2C clock lines
-//        .scl_io_i(my_scl_i),
-//        .scl_io_o(my_scl_o),
-//        .scl_io_t(my_scl_t),
-//        // I2C data lines
-//        .sda_io_i(my_sda_i),
-//        .sda_io_o(my_sda_o),
-//        .sda_io_t(my_sda_t),
-//        .dbg_data_out(dbg2_data_out),
-//        .dbg_valid_out(dbg2_valid_out),
-//        .i2c_write_en(dbg2_i2c_write_en),
-//        .i2c_read_en(dbg2_i2c_read_en),
-//        .dbg_busy(dbg2_busy),
-//        .dbg_req_data_chunk(dbg2_req_data_chunk),
-//        .dbg_nack(dbg2_nack),
+        // UART
+        .uart_rxd(uart_rxd),
+        .uart_txd(uart_txd),
+        .uart_clk_edge(uart_clk_edge),
+        .o_SM_Main(o_SM_Main),
+        // Debug Lines
+        .dbg_uart_write_en(dbg_uart_write_en),
+        .dbg_uart_writing(dbg_uart_writing),
+        .dbg_uart_write_data(dbg_uart_write_data),
+        .dbg_uart_write_finished(dbg_uart_write_finished),
+
+        .dbg_uart_read_en(dbg_uart_read_en),
+        .dbg_uart_reading(dbg_uart_reading),
+        .dbg_uart_read_data(dbg_uart_read_data),
+        .dbg_uart_read_finished(dbg_uart_read_finished),
+
+        .dbg_o_tx_active(dbg_o_tx_active),
+        .dbg_o_tx_serial(dbg_o_tx_serial),
+        .dbg_o_tx_done(dbg_o_tx_done),
 
 		.S_AXI_AWADDR(s00_axi_awaddr),
 		.S_AXI_AWPROT(s00_axi_awprot),

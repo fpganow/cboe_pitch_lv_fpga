@@ -1,7 +1,6 @@
 `timescale 1 ns / 1 ps
-
-//(* dont_touch="true" *)
-module my_i2c_S00_AXI #
+(* dont_touch="true" *)
+module my_axi_ip_S00_AXI #
 	(
 		// Users to add parameters here
 
@@ -14,22 +13,26 @@ module my_i2c_S00_AXI #
 		parameter integer C_S_AXI_ADDR_WIDTH	= 6
 	)
 	(
-		// Users to add ports here
-//        // I2C
-//        input  wire scl_io_i,
-//        output wire scl_io_o,
-//        output wire scl_io_t,
-//        input  wire sda_io_i,
-//        output wire sda_io_o,
-//        output wire sda_io_t,
-//        // Debug Lines
-//        output wire dbg_data_out,
-//        output wire dbg_valid_out,
-//        output reg i2c_write_en,
-//        output reg i2c_read_en,
-//        output wire dbg_busy,
-//        output wire dbg_req_data_chunk,
-//        output wire dbg_nack,
+		// My Ports
+        // UART
+        input wire uart_rxd,
+        (* dont_touch="true" *) output wire uart_txd,
+        output wire uart_clk_edge,
+        output wire [2:0]  o_SM_Main,
+        // Debug Lines
+        output wire               dbg_uart_write_en,
+        output wire                dbg_uart_writing,
+        output wire  [7:0]      dbg_uart_write_data,
+        output wire         dbg_uart_write_finished,
+
+        output wire                dbg_uart_read_en,
+        output wire                dbg_uart_reading,
+        output wire  [7:0]       dbg_uart_read_data,
+        output wire          dbg_uart_read_finished,
+
+        output wire                 dbg_o_tx_active,
+        output wire                 dbg_o_tx_serial,
+        output wire                   dbg_o_tx_done,
 		// User ports ends
 		// Do not modify the ports beyond this line
 
@@ -142,12 +145,21 @@ module my_i2c_S00_AXI #
 	reg	 aw_en;
 
     // My Signals
-    //reg i2c_write_en;
-    reg i2c_writing;
-    reg i2c_write_finished;
-    //reg i2c_read_en;
-    reg i2c_reading;
-    reg i2c_read_finished;
+    reg              uart_write_en;
+    reg               uart_writing;
+    reg  [7:0]     uart_write_data;
+    reg        uart_write_finished;
+    reg               uart_read_en;
+    reg               uart_reading;
+    reg  [7:0]      uart_read_data;
+    reg         uart_read_finished;
+
+    reg            i_Tx_DV;
+    reg [7:0]    i_Tx_Byte;
+    wire        o_Tx_Active;
+    wire [7:0]  o_Tx_Serial;
+    wire          o_Tx_Done;
+
     // I/O Connections assignments
     assign S_AXI_AWREADY  =  axi_awready;
     assign S_AXI_WREADY   =   axi_wready;
@@ -162,16 +174,21 @@ module my_i2c_S00_AXI #
     // axi_awready is asserted for one S_AXI_ACLK clock cycle when both
     // S_AXI_AWVALID and S_AXI_WVALID are asserted. axi_awready is
     // de-asserted when reset is low.
-//    assign dbg_data_out = data_out;
-//    assign dbg_valid_out = valid_out;
-//    assign dbg_req_data_chunk = req_data_chunk;
-//    assign dbg_busy = busy;
-//    assign dbg_nack = nack;
-    assign dbg_data_out = 1'b0;
-    assign dbg_valid_out = 1'b0;
-    assign dbg_req_data_chunk = 1'b0;
-    assign dbg_busy = 1'b0;
-    assign dbg_nack = 1'b0;
+    // My Debug Ports
+    assign dbg_uart_write_en = uart_write_en; 
+    assign dbg_uart_writing = uart_writing;
+    assign dbg_uart_write_data = uart_write_data;
+    assign dbg_uart_write_finished = uart_write_finished;
+
+    assign dbg_uart_read_en = uart_read_en;
+    assign dbg_uart_reading = uart_reading;
+    assign dbg_uart_read_data = uart_read_data;
+    assign dbg_uart_read_finished = uart_read_finished;
+
+    assign dbg_o_tx_active = o_Tx_Active;
+    assign dbg_o_tx_serial = o_Tx_Serial;
+    assign dbg_o_tx_done = o_Tx_Done;
+    assign uart_txd = o_Tx_Serial;
 
     // Loop 1: Write Address Channel
     always @( posedge S_AXI_ACLK )
@@ -180,23 +197,26 @@ module my_i2c_S00_AXI #
         begin
           axi_awready <= 1'b0;
           aw_en <= 1'b1;
+
+          axi_awaddr <= 1'b0;
         end
       else
         begin
           if (~axi_awready && S_AXI_AWVALID && S_AXI_WVALID && aw_en)
             begin
-              // slave is ready to accept write address when 
-              // there is a valid write address and write data
-              // on the write address and data bus. This design
-              // expects no outstanding transactions.
+              // ACK to host that we read the Write Address
               axi_awready <= 1'b1;
+              // Prevent us from re-reading Write Address
               aw_en <= 1'b0;
+              // Save Write Address Here
+	          axi_awaddr <= S_AXI_AWADDR;
             end
-            else if (S_AXI_BREADY && axi_bvalid)
-                begin
-                  aw_en <= 1'b1;
-                  axi_awready <= 1'b0;
-                end
+          else if (S_AXI_BREADY && axi_bvalid)
+            begin
+              // We finished a write transaction, be ready for next one
+              aw_en <= 1'b1;
+              axi_awready <= 1'b0;
+            end
           else
             begin
               axi_awready <= 1'b0;
@@ -204,24 +224,7 @@ module my_i2c_S00_AXI #
         end
     end
 
-    // Loop 2: Write Address Latch
-	always @( posedge S_AXI_ACLK )
-	begin
-	  if ( S_AXI_ARESETN == 1'b0 )
-	    begin
-	      axi_awaddr <= 0;
-	    end
-	  else
-	    begin
-	      if (~axi_awready && S_AXI_AWVALID && S_AXI_WVALID && aw_en)
-	        begin
-	          // Write Address latching 
-	          axi_awaddr <= S_AXI_AWADDR;
-	        end
-	    end
-	end
-
-    // Loop 3: Write Data Channel
+    // Loop 2: Write Data Channel
 	always @( posedge S_AXI_ACLK )
 	begin
 	  if ( S_AXI_ARESETN == 1'b0 )
@@ -232,10 +235,7 @@ module my_i2c_S00_AXI #
 	    begin
 	      if (~axi_wready && S_AXI_WVALID && S_AXI_AWVALID && aw_en )
 	        begin
-	          // slave is ready to accept write data when 
-	          // there is a valid write address and write data
-	          // on the write address and data bus. This design 
-	          // expects no outstanding transactions. 
+              // ACK Write Data
 	          axi_wready <= 1'b1;
 	        end
 	      else
@@ -245,16 +245,10 @@ module my_i2c_S00_AXI #
 	    end
 	end
 
-	// Implement memory mapped register select and write logic generation
-	// The write data is accepted and written to memory mapped registers when
-	// axi_awready, S_AXI_WVALID, axi_wready and S_AXI_WVALID are asserted. Write strobes are used to
-	// select byte enables of slave registers while writing.
-	// These registers are cleared when reset (active low) is applied.
-	// Slave register write enable is asserted when valid address and data are available
-	// and the slave is ready to accept the write address and write data.
 	assign slv_reg_wren = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID;
 
-    // Loop 4: Write Data to Register/I2C Control
+    // Loop 3: Handle Write Data
+    // I prefer this to be part of Loop 2, but it is complicated
 	always @( posedge S_AXI_ACLK )
 	begin
 	  if ( S_AXI_ARESETN == 1'b0 )
@@ -275,7 +269,7 @@ module my_i2c_S00_AXI #
 	      slv_reg13 <= 0;
 	      slv_reg14 <= 0;
 	      slv_reg15 <= 0;
-          i2c_write_en <= 1'b0;
+          uart_write_en <= 1'b0;
 	    end
 	  else begin
 	    if (slv_reg_wren)
@@ -287,123 +281,88 @@ module my_i2c_S00_AXI #
 	          4'h0:
 	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
 	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	                // Respective byte enables are asserted as per write strobes 
-	                // Slave register 0
 	                slv_reg0[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
-	                //slv_reg0[(byte_index*8) +: 8] <= 8'hF;
 	              end
 	          4'h1:
 	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
 	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	                // Respective byte enables are asserted as per write strobes 
-	                // Slave register 1
 	                slv_reg1[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 	              end
 	          4'h2:
 	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
 	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	                // Respective byte enables are asserted as per write strobes 
-	                // Slave register 2
 	                slv_reg2[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 	              end
 	          4'h3:
 	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
 	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	                // Respective byte enables are asserted as per write strobes 
-	                // Slave register 3
 	                slv_reg3[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 	              end
 	          4'h4:
 	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
 	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	                // Respective byte enables are asserted as per write strobes 
-	                // Slave register 4
 	                slv_reg4[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 	              end
 	          4'h5:
 	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
 	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	                // Respective byte enables are asserted as per write strobes 
-	                // Slave register 5
 	                slv_reg5[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 	              end
 	          4'h6:
 	            begin
 	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
 	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	                // Respective byte enables are asserted as per write strobes 
-	                // Slave register 6
 	                slv_reg6[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 	              end
 	            end
+              // SPECIAL CASE Register #7 or Write Address (0x1C)
+              //  - Trigger an i2c write
 	          4'h7:
-	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
-	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	                // Respective byte enables are asserted as per write strobes 
-	                // Slave register 7
-	                slv_reg7[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
-	              end
+	            begin
+	              uart_write_en <= 1'b1;
+                  uart_write_data <= 8'h61;
+                  //uart_write_data <= S_AXI_WDATA[(0*8) +: 8];
+                end
+              // SPECIAL CASE Register #8 or Write Address (0x20)
+              //  - Write to register and constantly just increment its value
 	          4'h8:
 	            begin
-//	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
-//	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-//	                // Respective byte enables are asserted as per write strobes 
-//	                // Slave register 8
-//	                slv_reg8[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
-//	              end
 	              slv_reg8 <= slv_reg8 + 1;
-	              i2c_write_en <= 1'b1;
 	            end
+              // SPECIAL CASE Register #9 or Write Address (0x2C)
+              //  - Just write a value to make sure writing period works
 	          4'h9:
 	            begin
 	               slv_reg9 <= 99;
 	            end
-//	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
-//	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-//	                // Respective byte enables are asserted as per write strobes 
-//	                // Slave register 9
-//	                slv_reg9[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
-//	              end
 	          4'hA:
 	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
 	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	                // Respective byte enables are asserted as per write strobes 
-	                // Slave register 10
 	                slv_reg10[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 	              end
 	          4'hB:
 	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
 	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	                // Respective byte enables are asserted as per write strobes 
-	                // Slave register 11
 	                slv_reg11[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 	              end
 	          4'hC:
 	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
 	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	                // Respective byte enables are asserted as per write strobes 
-	                // Slave register 12
 	                slv_reg12[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 	              end
 	          4'hD:
 	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
 	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	                // Respective byte enables are asserted as per write strobes 
-	                // Slave register 13
 	                slv_reg13[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 	              end
 	          4'hE:
 	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
 	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	                // Respective byte enables are asserted as per write strobes 
-	                // Slave register 14
 	                slv_reg14[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 	              end
 	          4'hF:
 	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
 	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
-	                // Respective byte enables are asserted as per write strobes 
-	                // Slave register 15
 	                slv_reg15[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 	              end
 	          default : begin
@@ -427,9 +386,9 @@ module my_i2c_S00_AXI #
 	        endcase
 	      end
 	  end
-      if (i2c_write_finished)
+      if (uart_write_finished)
         begin
-            i2c_write_en <= 1'b0;
+            uart_write_en <= 1'b0;
         end
 	end
 
@@ -468,8 +427,8 @@ module my_i2c_S00_AXI #
         begin
           axi_arready <= 1'b0;
           axi_araddr  <= 32'b0;
-          // Reset i2c_read_en
-          i2c_read_en <= 1'b0;
+          // Reset uart_read_en
+          //i2c_read_en <= 1'b0;
         end
       else
         begin
@@ -479,12 +438,12 @@ module my_i2c_S00_AXI #
               axi_arready <= 1'b1;
               // Read address latching
               axi_araddr  <= S_AXI_ARADDR;
-              if ( S_AXI_ARADDR == (5'b00111 << 2) )
-                begin
-                  // I2C: Read Transaction starting
-                  // Set i2c_read_en
-                  i2c_read_en <= 1'b1;
-                end
+//              if ( S_AXI_ARADDR == (5'b00111 << 2) )
+//                begin
+//                  // I2C: Read Transaction starting
+//                  // Set i2c_read_en
+//                  i2c_read_en <= 1'b1;
+//                end
             end
           else
             begin
@@ -492,11 +451,11 @@ module my_i2c_S00_AXI #
             end
         end
         // Reset i2c_read_en
-        if (i2c_read_finished)
-          begin
-            i2c_read_en <= 1'b0;
-            i2c_reading <= 1'b0;
-          end
+//        if (i2c_read_finished)
+//          begin
+//            i2c_read_en <= 1'b0;
+//            i2c_reading <= 1'b0;
+//          end
     end
 
     // Loop 7: Read Data from Register
@@ -537,145 +496,137 @@ module my_i2c_S00_AXI #
     //wire [7:0]   data_out; // output
     //wire        valid_out; // output
 
-    // Loop 8: I2C Control Loop
+    // Loop 8: UART Control Loop
     always @ (posedge S_AXI_ACLK) begin
-      if ( S_AXI_ARESETN == 1'b0 ) begin
+        if ( S_AXI_ARESETN == 1'b0 ) begin
             axi_rdata  <= 0;
             axi_rvalid <= 0;
             axi_rresp  <= 0;
 
-            i2c_write_finished  <=  0;
-            i2c_writing         <=  0;
-            i2c_read_finished   <=  0;
-            i2c_reading         <=  0;
+            uart_writing          <=  0;
+            uart_write_finished   <=  0;
+        end else begin
+            // Not Writing
+            if (!uart_write_en) begin
+                uart_writing <= 1'b0;
+                uart_write_finished <= 1'b0;
+                i_Tx_DV <= 1'b0;
+                i_Tx_Byte <= 8'b00000000;
 
-            //slave_addr         <=  8'b00000000;
-            //i_sub_addr         <=     16'h0000;
-            //i_sub_len          <=         1'b0;
-            //i_byte_len         <=   24'h000000;
-            //i_data_write       <=        8'h00;
-            //request_transmit   <=         1'b0;
-      end
-      else begin
-            if (!i2c_write_en) begin
-                i2c_writing <= 1'b0;
-                i2c_write_finished <= 1'b0;
-            end if (i2c_write_en && !i2c_write_finished) begin
-                if (!busy && !request_transmit && !i2c_writing) begin
-                    // START Writing
-                    slave_addr <= (slv_reg0[7:0] << 1) | 0; // 0 means write
-                    i_sub_addr <= slv_reg1[7:0];
-                    i_sub_len <= 1'b0; // 0 = 8-bit
-                    i_byte_len <= 24'h000001;
-                    i_data_write <= 8'h00;
-                    request_transmit <= 1'b1;
-                    i2c_writing <= 1'b1;
-                end
-                else if (busy && request_transmit && i2c_writing) begin
-                    // WRITING - reset requence to prevent
-                    // a second write request
-                    slave_addr <= 8'b00000000;
-                    i_sub_addr <= 16'h0000;
-                    i_sub_len <= 1'b0;
-                    i_byte_len <= 24'h000000;
-                    i_data_write <= 8'h00;
-                    request_transmit <= 1'b0;
-                end else if (!busy && !request_transmit && i2c_writing) begin
-                    // Transaction is over
-                    i2c_write_finished <= 1'b1;
-                    i2c_writing <= 1'b0;
-                end
-            end // end if (i2c_write_en && !i2c_write_finished)
+            // Start Write Request
+            end if (uart_write_en && !uart_writing && !o_Tx_Active) begin
+                uart_writing <= 1'b1;
+                uart_write_finished <= 1'b0;
+
+                i_Tx_DV <= 1'b1;
+                i_Tx_Byte <= uart_write_data;
+            // IP is busy writing
+            end if (uart_write_en && uart_writing && !uart_write_finished && o_Tx_Active && !o_Tx_Done) begin
+                i_Tx_DV <= 1'b0;
+                i_Tx_Byte <= 8'b00000000;
+            // IP has finished writing
+            end if (uart_write_en && uart_writing && o_Tx_Done) begin
+                uart_writing <= 1'b0;
+                uart_write_finished <= 1'b1;
+            end
+//            end if (uart_write_en && !uart_write_finished) begin
+//                uart_writing <= 1'b0;
+//                uart_write_finished <= 1'b1;
+//                if (!busy && !request_transmit && !i2c_writing) begin
+//                    // START Writing
+//                    slave_addr <= (slv_reg0[7:0] << 1) | 0; // 0 means write
+//                    i_sub_addr <= slv_reg1[7:0];
+//                    i_sub_len <= 1'b0; // 0 = 8-bit
+//                    i_byte_len <= 24'h000001;
+//                    i_data_write <= 8'h00;
+//                    request_transmit <= 1'b1;
+//                    i2c_writing <= 1'b1;
+//                end
+//                else if (busy && request_transmit && i2c_writing) begin
+//                    // WRITING - reset requence to prevent
+//                    // a second write request
+//                    slave_addr <= 8'b00000000;
+//                    i_sub_addr <= 16'h0000;
+//                    i_sub_len <= 1'b0;
+//                    i_byte_len <= 24'h000000;
+//                    i_data_write <= 8'h00;
+//                    request_transmit <= 1'b0;
+//                end else if (!busy && !request_transmit && i2c_writing) begin
+//                    // Transaction is over
+//                    i2c_write_finished <= 1'b1;
+//                    i2c_writing <= 1'b0;
+//                end
+//            end // end if (i2c_write_en && !i2c_write_finished)
 
             // No read
-            if (!slv_reg_rden & !i2c_read_en) begin
+            if (!slv_reg_rden & !uart_read_en) begin
                 axi_rvalid <= 1'b0;
             end
             //  slv_reg_rden = (axi_arready && S_AXI_ARVALID && ~axi_rvalid)
             // Regular Read
-            if (slv_reg_rden & !i2c_read_en) begin
+            if (slv_reg_rden & !uart_read_en) begin
                 axi_rdata <= reg_data_out;     // register read data
                 axi_rvalid <= 1'b1;
                 axi_rresp  <= 2'b0; // 'OKAY' response
             end
-
-            if (!i2c_read_en) begin
-                i2c_reading <= 1'b0;
-                i2c_read_finished <= 1'b0;
-            end if (i2c_read_en & !i2c_read_finished) begin
-                // Handle Response Loop
-                // Q: Are busy and valid_out valid at the same time?
-                if (valid_out && !S_AXI_RREADY) begin
-                    axi_rvalid <= 1'b1;
-                    axi_rresp  <= 2'b0; // 'OKAY' response
-                    axi_rdata <= data_out;
-                end else begin
-                    axi_rvalid <= 1'b0;
-                end
-                // I2C Control Loop
-                if (!busy && !request_transmit && !i2c_reading) begin
-                    // START Reading
-                    //slave_addr <= (slv_reg0[7:0] << 1) | 1; // 1 means read
-                    //i_sub_addr <= slv_reg1[7:0];
-                    //i_sub_len <= 1'b0; // 0 = 8-bit
-                    //i_byte_len <= slv_reg2[7:0];
-                    //i_byte_len <= 24'h000002;
-                    i_data_write <= 8'h00;
-                    request_transmit <= 1'b1;
-                    i2c_reading <= 1'b1;
-                end else if (busy && request_transmit && i2c_reading) begin
-                    // READING - reset requence to prevent
-                    // a second read request
-                    //slave_addr <= 8'b00000000;
-                    //i_sub_addr <= 16'h0000;
-                    //i_sub_len <= 1'b0;
-                    //i_byte_len <= 24'h000000;
-                    //i_data_write <= 8'h00;
-                    request_transmit <= 1'b0;
-                end else if (!busy && !request_transmit && i2c_reading) begin
-                    // Transaction is over
-                    i2c_reading <= 1'b0;
-                    // Copy read data
-                    //axi_rdata <= data_out;
-                    //axi_rvalid <= 1'b1;
-                    //axi_rresp  <= 2'b0; // 'OKAY' response
-                    i2c_read_finished  <=  1'b1;
-                end
-            end
       end
     end
+//            if (!i2c_read_en) begin
+//                i2c_reading <= 1'b0;
+//                i2c_read_finished <= 1'b0;
+//            end if (i2c_read_en & !i2c_read_finished) begin
+//                // Handle Response Loop
+//                // Q: Are busy and valid_out valid at the same time?
+//                if (valid_out && !S_AXI_RREADY) begin
+//                    axi_rvalid <= 1'b1;
+//                    axi_rresp  <= 2'b0; // 'OKAY' response
+//                    axi_rdata <= data_out;
+//                end else begin
+//                    axi_rvalid <= 1'b0;
+//                end
+//                // I2C Control Loop
+//                if (!busy && !request_transmit && !i2c_reading) begin
+//                    // START Reading
+//                    //slave_addr <= (slv_reg0[7:0] << 1) | 1; // 1 means read
+//                    //i_sub_addr <= slv_reg1[7:0];
+//                    //i_sub_len <= 1'b0; // 0 = 8-bit
+//                    //i_byte_len <= slv_reg2[7:0];
+//                    //i_byte_len <= 24'h000002;
+//                    i_data_write <= 8'h00;
+//                    request_transmit <= 1'b1;
+//                    i2c_reading <= 1'b1;
+//                end else if (busy && request_transmit && i2c_reading) begin
+//                    // READING - reset requence to prevent
+//                    // a second read request
+//                    //slave_addr <= 8'b00000000;
+//                    //i_sub_addr <= 16'h0000;
+//                    //i_sub_len <= 1'b0;
+//                    //i_byte_len <= 24'h000000;
+//                    //i_data_write <= 8'h00;
+//                    request_transmit <= 1'b0;
+//                end else if (!busy && !request_transmit && i2c_reading) begin
+//                    // Transaction is over
+//                    i2c_reading <= 1'b0;
+//                    // Copy read data
+//                    //axi_rdata <= data_out;
+//                    //axi_rvalid <= 1'b1;
+//                    //axi_rresp  <= 2'b0; // 'OKAY' response
+//                    i2c_read_finished  <=  1'b1;
+//                end
+//            end
 
-//    i2c_master i2c_master_inst(
-//        .i_clk(S_AXI_ACLK),         // input clock to the module @100MHz (or whatever crystal you have on the board)
-//        .reset_n(S_AXI_ARESETN),      // reset for creating a known start condition
-//        .i_addr_w_rw(slave_addr),     // 7 bit address, LSB is the read write bit, with 0 being
-                                      // write, 1 being read
-//        .i_sub_addr(i_sub_addr),      // contains sub addr to send to slave, partition is decided on bit_sel
-//        .i_sub_len(i_sub_len),        // denotes whether working with an 8 bit or 16 bit sub_addr, 0 is 8bit, 1 is 16 bit
-//        .i_byte_len(i_byte_len),      // denotes whether a single or sequential read or write
-                                      // will be performed (denotes number of bytes to read or write)
-//        .i_data_write(i_data_write),  // Data to write if performing write action
-//        .req_trans(request_transmit), // denotes when to start a new transaction
 
-        /** For Reads **/
-//        .data_out(data_out),
-//        .valid_out(valid_out),
-
-        /** I2C Lines **/
-        //i2c clck line, output by this module, 400 kHz
-//        .scl_io_i(scl_io_i),
-//        .scl_io_o(scl_io_o),
-//        .scl_io_t(scl_io_t),
-        //i2c data line, set to 1'bz when not utilized (resistors will pull it high)
-//        .sda_io_i(sda_io_i),
-//        .sda_io_o(sda_io_o),
-//        .sda_io_t(sda_io_t),
-
-        /** Comms to Master Module **/
-//        .req_data_chunk(req_data_chunk),  //Request master to request new data chunk in i_data_write
-//        .busy(busy),                      //denotes whether module is currently communicating with a slave
-//        .nack(nack)                       //denotes whether module is encountering a nack from slave (only activates when master is attempting to contact device)
-//    );
+    uart_tx #(.CLKS_PER_BIT(10417))
+        uart_tx_inst(
+        .i_Clock(S_AXI_ACLK),
+        .i_Tx_DV(i_Tx_DV),
+        .i_Tx_Byte(i_Tx_Byte),
+        .o_Tx_Active(o_Tx_Active),
+        .o_Tx_Serial(o_Tx_Serial),
+        .o_Tx_Done(o_Tx_Done),
+        .o_SM_Main(o_SM_Main),
+        .uart_clk_edge(uart_clk_edge)
+    );
 	// User logic ends
 
     endmodule
