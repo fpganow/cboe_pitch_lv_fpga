@@ -24,6 +24,7 @@ module my_axi_ip_S00_AXI #
         output wire                dbg_uart_writing,
         output wire  [7:0]      dbg_uart_write_data,
         output wire         dbg_uart_write_finished,
+        output wire  [7:0]     dbg_uart_write_count,
 
         output wire                dbg_uart_read_en,
         output wire                dbg_uart_reading,
@@ -33,6 +34,7 @@ module my_axi_ip_S00_AXI #
         output wire                 dbg_o_tx_active,
         output wire                 dbg_o_tx_serial,
         output wire                   dbg_o_tx_done,
+
 		// User ports ends
 		// Do not modify the ports beyond this line
 
@@ -149,10 +151,22 @@ module my_axi_ip_S00_AXI #
     reg               uart_writing;
     reg  [7:0]     uart_write_data;
     reg        uart_write_finished;
+    reg  [7:0]    uart_write_count;
     reg               uart_read_en;
     reg               uart_reading;
     reg  [7:0]      uart_read_data;
     reg         uart_read_finished;
+
+    // FIFO Signals
+    reg fifo_wr;
+    reg [7:0] fifo_data_in;
+    reg fifo_rd;
+    reg [7:0] fifo_data_out;
+    reg fifo_fifo_full;
+    reg fifo_fifo_empty; 
+    reg fifo_fifo_threshold;
+    reg fifo_fifo_overflow;
+    reg fifo_fifo_underflow;
 
     reg            i_Tx_DV;
     reg [7:0]    i_Tx_Byte;
@@ -179,6 +193,7 @@ module my_axi_ip_S00_AXI #
     assign dbg_uart_writing = uart_writing;
     assign dbg_uart_write_data = uart_write_data;
     assign dbg_uart_write_finished = uart_write_finished;
+    assign dbg_uart_write_count = uart_write_count;
 
     assign dbg_uart_read_en = uart_read_en;
     assign dbg_uart_reading = uart_reading;
@@ -270,6 +285,7 @@ module my_axi_ip_S00_AXI #
 	      slv_reg14 <= 0;
 	      slv_reg15 <= 0;
           uart_write_en <= 1'b0;
+          uart_write_count <= 8'h00;
 	    end
 	  else begin
 	    if (slv_reg_wren)
@@ -320,8 +336,8 @@ module my_axi_ip_S00_AXI #
 	          4'h7:
 	            begin
 	              uart_write_en <= 1'b1;
-                  uart_write_data <= 8'h61;
-                  //uart_write_data <= S_AXI_WDATA[(0*8) +: 8];
+                  //uart_write_data <= 8'h61;
+                  uart_write_data <= S_AXI_WDATA[(0*8) +: 8];
                 end
               // SPECIAL CASE Register #8 or Write Address (0x20)
               //  - Write to register and constantly just increment its value
@@ -465,7 +481,7 @@ module my_axi_ip_S00_AXI #
       // Address decoding for reading registers
         case ( axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] )
           4'h0   : reg_data_out <= slv_reg0;
-          4'h1   : reg_data_out <= slv_reg1;
+          4'h1   : reg_data_out <= uart_write_count;
           4'h2   : reg_data_out <= slv_reg2;
           4'h3   : reg_data_out <= slv_reg3;
           4'h4   : reg_data_out <= slv_reg4;
@@ -514,9 +530,10 @@ module my_axi_ip_S00_AXI #
                 i_Tx_Byte <= 8'b00000000;
 
             // Start Write Request
-            end if (uart_write_en && !uart_writing && !o_Tx_Active) begin
+            end if (uart_write_en && !uart_writing && !o_Tx_Active && !uart_write_finished) begin
                 uart_writing <= 1'b1;
                 uart_write_finished <= 1'b0;
+                uart_write_count <= uart_write_count + 1;
 
                 i_Tx_DV <= 1'b1;
                 i_Tx_Byte <= uart_write_data;
@@ -526,6 +543,7 @@ module my_axi_ip_S00_AXI #
                 i_Tx_Byte <= 8'b00000000;
             // IP has finished writing
             end if (uart_write_en && uart_writing && o_Tx_Done) begin
+                i_Tx_DV <= 1'b0;
                 uart_writing <= 1'b0;
                 uart_write_finished <= 1'b1;
             end
@@ -615,6 +633,24 @@ module my_axi_ip_S00_AXI #
 //                end
 //            end
 
+
+
+    fifo_mem (
+        .clk(S_AXI_ACLK),
+        .rst_n(S_AXI_ARESETN),
+        // Write to FIFO
+        .wr(fifo_wr),
+        .data_in(fifo_data_in),
+        // Read FIFO
+        .rd(fifo_rd),
+        .data_out(fifo_data_out),
+        // Status
+        .fifo_full(fifo_fifo_full),
+        .fifo_empty(fifo_fifo_empty), 
+        .fifo_threshold(fifo_fifo_threshold),
+        .fifo_overflow(fifo_fifo_overflow),
+        .fifo_underflow(fifo_fifo_underflow)
+        );
 
     uart_tx #(.CLKS_PER_BIT(10417))
         uart_tx_inst(

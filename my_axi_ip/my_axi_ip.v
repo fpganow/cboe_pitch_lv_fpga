@@ -21,6 +21,7 @@ module my_axi_ip #
         output wire              dbg_uart_writing,
         output wire [7:0]     dbg_uart_write_data,
         output wire       dbg_uart_write_finished,
+        output wire [7:0]    dbg_uart_write_count,
 
         output wire              dbg_uart_read_en,
         output wire              dbg_uart_reading,
@@ -90,6 +91,7 @@ module my_axi_ip #
         .dbg_uart_writing(dbg_uart_writing),
         .dbg_uart_write_data(dbg_uart_write_data),
         .dbg_uart_write_finished(dbg_uart_write_finished),
+        .dbg_uart_write_count(dbg_uart_write_count),
 
         .dbg_uart_read_en(dbg_uart_read_en),
         .dbg_uart_reading(dbg_uart_reading),
