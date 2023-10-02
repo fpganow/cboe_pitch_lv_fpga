@@ -158,21 +158,21 @@ module my_axi_ip_S00_AXI #
     reg         uart_read_finished;
 
     // FIFO Signals
-    reg fifo_wr;
-    reg [7:0] fifo_data_in;
-    reg fifo_rd;
-    reg [7:0] fifo_data_out;
-    reg fifo_fifo_full;
-    reg fifo_fifo_empty; 
-    reg fifo_fifo_threshold;
-    reg fifo_fifo_overflow;
-    reg fifo_fifo_underflow;
+    reg                    fifo_wr;
+    reg  [7:0]        fifo_data_in;
+    reg                    fifo_rd;
+    reg  [7:0]       fifo_data_out;
+    reg             fifo_fifo_full;
+    reg            fifo_fifo_empty; 
+    reg        fifo_fifo_threshold;
+    reg         fifo_fifo_overflow;
+    reg        fifo_fifo_underflow;
 
-    reg            i_Tx_DV;
-    reg [7:0]    i_Tx_Byte;
-    wire        o_Tx_Active;
-    wire [7:0]  o_Tx_Serial;
-    wire          o_Tx_Done;
+    reg                    i_Tx_DV;
+    reg   [7:0]          i_Tx_Byte;
+    wire               o_Tx_Active;
+    wire  [7:0]        o_Tx_Serial;
+    wire                 o_Tx_Done;
 
     // I/O Connections assignments
     assign S_AXI_AWREADY  =  axi_awready;
@@ -634,8 +634,9 @@ module my_axi_ip_S00_AXI #
 //            end
 
 
-
-    fifo_mem (
+    fifo_mem #()
+        fifo_mem_inst (
+        // Clock
         .clk(S_AXI_ACLK),
         .rst_n(S_AXI_ARESETN),
         // Write to FIFO
@@ -650,10 +651,11 @@ module my_axi_ip_S00_AXI #
         .fifo_threshold(fifo_fifo_threshold),
         .fifo_overflow(fifo_fifo_overflow),
         .fifo_underflow(fifo_fifo_underflow)
-        );
+    );
 
     uart_tx #(.CLKS_PER_BIT(10417))
         uart_tx_inst(
+        // Clock
         .i_Clock(S_AXI_ACLK),
         .i_Tx_DV(i_Tx_DV),
         .i_Tx_Byte(i_Tx_Byte),
