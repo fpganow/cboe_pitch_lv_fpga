@@ -13,10 +13,11 @@ module my_axi_ip_S00_AXI #
 		parameter integer C_S_AXI_ADDR_WIDTH	= 6
 	)
 	(
-		// My Ports
+
+        // User ports start
         // UART
         input wire uart_rxd,
-        (* dont_touch="true" *) output wire uart_txd,
+        output wire uart_txd,
         output wire uart_clk_edge,
         output wire [2:0]  o_SM_Main,
         // Debug Lines
@@ -34,8 +35,8 @@ module my_axi_ip_S00_AXI #
         output wire                 dbg_o_tx_active,
         output wire                 dbg_o_tx_serial,
         output wire                   dbg_o_tx_done,
+        // User ports end
 
-		// User ports ends
 		// Do not modify the ports beyond this line
 
 		// Global Clock Signal

@@ -7,15 +7,15 @@ module my_axi_ip #
 		parameter integer C_S00_AXI_ADDR_WIDTH	= 6
 	)
 	(
-		// My Ports
+        // My Ports
         // UART
-        (* dont_touch="true" *) input  wire uart_rxd,
-        (* dont_touch="true" *) output wire uart_txd,
-        (* dont_touch="true" *) output wire uart_clk_edge,
-        (* dont_touch="true" *) output reg uart_clk,
-        (* dont_touch="true" *) output wire o_SM_Main_0,
-        (* dont_touch="true" *) output wire o_SM_Main_1,
-        output wire o_SM_Main_2,
+        input  wire                      uart_rxd,
+        output wire                      uart_txd,
+        output wire                 uart_clk_edge,
+        output  reg                      uart_clk,
+        output wire                   o_SM_Main_0,
+        output wire                   o_SM_Main_1,
+        output wire                   o_SM_Main_2,
         // Debug Lines
         output wire             dbg_uart_write_en,
         output wire              dbg_uart_writing,
@@ -28,9 +28,9 @@ module my_axi_ip #
         output wire [7:0]      dbg_uart_read_data,
         output wire        dbg_uart_read_finished,
 
-        output wire dbg_o_tx_active,
-        output wire dbg_o_tx_serial,
-        output wire dbg_o_tx_done,
+        output wire               dbg_o_tx_active,
+        output wire               dbg_o_tx_serial,
+        output wire                 dbg_o_tx_done,
 
 		// Ports of Axi Slave Bus Interface S00_AXI
 		input wire                                   s00_axi_aclk,
@@ -74,12 +74,12 @@ module my_axi_ip #
     assign o_SM_Main_2 = o_SM_Main[2];
 
 // Instantiation of Axi Bus Interface S00_AXI
-	my_axi_ip_S00_AXI # ( 
-		.C_S_AXI_DATA_WIDTH(C_S00_AXI_DATA_WIDTH),
-		.C_S_AXI_ADDR_WIDTH(C_S00_AXI_ADDR_WIDTH)
-	) my_axi_ip_S00_AXI_inst (
-		.S_AXI_ACLK(s00_axi_aclk),
-		.S_AXI_ARESETN(s00_axi_aresetn),
+    my_axi_ip_S00_AXI # ( 
+        .C_S_AXI_DATA_WIDTH(C_S00_AXI_DATA_WIDTH),
+        .C_S_AXI_ADDR_WIDTH(C_S00_AXI_ADDR_WIDTH)
+    ) my_axi_ip_S00_AXI_inst (
+        .S_AXI_ACLK(s00_axi_aclk),
+        .S_AXI_ARESETN(s00_axi_aresetn),
 
         // UART
         .uart_rxd(uart_rxd),
@@ -123,8 +123,8 @@ module my_axi_ip #
 		.S_AXI_RREADY(s00_axi_rready)
 	);
 
-	// Add user logic here
+// Add user logic here
 
-	// User logic ends
+// User logic ends
 
-	endmodule
+endmodule
