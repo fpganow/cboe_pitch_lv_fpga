@@ -14,12 +14,13 @@ module my_axi_ip_S00_AXI #
 	)
 	(
 
+        // CUSTOM
         // User ports start
         // UART
-        input wire uart_rxd,
-        output wire uart_txd,
-        output wire uart_clk_edge,
-        output wire [2:0]  o_SM_Main,
+        input  wire                        uart_rxd,
+        output wire                        uart_txd,
+        output wire                   uart_clk_edge,
+        output wire  [2:0]                o_SM_Main,
         // Debug Lines
         output wire               dbg_uart_write_en,
         output wire                dbg_uart_writing,
@@ -147,7 +148,9 @@ module my_axi_ip_S00_AXI #
 	integer	 byte_index;
 	reg	 aw_en;
 
+    // CUSTOM
     // My Signals
+    // UART
     reg              uart_write_en;
     reg               uart_writing;
     reg  [7:0]     uart_write_data;
@@ -164,7 +167,7 @@ module my_axi_ip_S00_AXI #
     reg                    fifo_rd;
     reg  [7:0]       fifo_data_out;
     reg             fifo_fifo_full;
-    reg            fifo_fifo_empty; 
+    reg            fifo_fifo_empty;
     reg        fifo_fifo_threshold;
     reg         fifo_fifo_overflow;
     reg        fifo_fifo_underflow;
@@ -225,7 +228,7 @@ module my_axi_ip_S00_AXI #
               // Prevent us from re-reading Write Address
               aw_en <= 1'b0;
               // Save Write Address Here
-	          axi_awaddr <= S_AXI_AWADDR;
+              axi_awaddr <= S_AXI_AWADDR;
             end
           else if (S_AXI_BREADY && axi_bvalid)
             begin
@@ -334,9 +337,12 @@ module my_axi_ip_S00_AXI #
 	            end
               // SPECIAL CASE Register #7 or Write Address (0x1C)
               //  - Trigger an i2c write
-	          4'h7:
-	            begin
-	              uart_write_en <= 1'b1;
+              4'h7:
+                begin
+                  i_Tx_DV <= 1'b1;
+                  i_Tx_Byte <= S_AXI_WDATA[(0*8) +: 8];
+
+                  uart_write_en <= 1'b1;
                   //uart_write_data <= 8'h61;
                   uart_write_data <= S_AXI_WDATA[(0*8) +: 8];
                 end

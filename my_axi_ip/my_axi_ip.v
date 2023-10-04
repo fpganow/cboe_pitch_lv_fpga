@@ -74,7 +74,7 @@ module my_axi_ip #
     assign o_SM_Main_2 = o_SM_Main[2];
 
 // Instantiation of Axi Bus Interface S00_AXI
-    my_axi_ip_S00_AXI # ( 
+    my_axi_ip_S00_AXI # (
         .C_S_AXI_DATA_WIDTH(C_S00_AXI_DATA_WIDTH),
         .C_S_AXI_ADDR_WIDTH(C_S00_AXI_ADDR_WIDTH)
     ) my_axi_ip_S00_AXI_inst (
