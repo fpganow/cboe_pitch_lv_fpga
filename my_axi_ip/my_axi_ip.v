@@ -1,12 +1,12 @@
 `timescale 1 ns / 1 ps
 (* dont_touch="true" *)
 module my_axi_ip #
-	(
-		// Parameters of Axi Slave Bus Interface S00_AXI
-		parameter integer C_S00_AXI_DATA_WIDTH	= 32,
-		parameter integer C_S00_AXI_ADDR_WIDTH	= 6
-	)
-	(
+    (
+        // Parameters of Axi Slave Bus Interface S00_AXI
+        parameter integer C_S00_AXI_DATA_WIDTH	= 32,
+        parameter integer C_S00_AXI_ADDR_WIDTH	= 6
+    )
+    (
         // My Ports
         // UART
         input  wire                      uart_rxd,

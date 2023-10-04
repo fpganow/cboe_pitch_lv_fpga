@@ -1,19 +1,16 @@
 `timescale 1 ns / 1 ps
 (* dont_touch="true" *)
 module my_axi_ip_S00_AXI #
-	(
-		// Users to add parameters here
-
-		// User parameters ends
-		// Do not modify the parameters beyond this line
-
-		// Width of S_AXI data bus
-		parameter integer C_S_AXI_DATA_WIDTH	= 32,
-		// Width of S_AXI address bus
-		parameter integer C_S_AXI_ADDR_WIDTH	= 6
-	)
-	(
-
+    (
+        // Users to add parameters here
+        // User parameters ends
+        // Do not modify the parameters beyond this line
+        // Width of S_AXI data bus
+        parameter integer C_S_AXI_DATA_WIDTH	= 32,
+        // Width of S_AXI address bus
+        parameter integer C_S_AXI_ADDR_WIDTH	= 6
+    )
+    (
         // CUSTOM
         // User ports start
         // UART
@@ -38,81 +35,53 @@ module my_axi_ip_S00_AXI #
         output wire                   dbg_o_tx_done,
         // User ports end
 
-		// Do not modify the ports beyond this line
+        // Global Clock Signal
+        input wire                                  S_AXI_ACLK,
 
-		// Global Clock Signal
-		input wire  S_AXI_ACLK,
-		// Global Reset Signal. This Signal is Active LOW
-		input wire  S_AXI_ARESETN,
-		// Write address (issued by master, acceped by Slave)
-		input wire [C_S_AXI_ADDR_WIDTH-1 : 0] S_AXI_AWADDR,
-        // Write channel Protection type. This signal indicates the
-        // privilege and security level of the transaction, and whether
-        // the transaction is a data access or an instruction access.
-		input wire [2 : 0] S_AXI_AWPROT,
-		// Write address valid. This signal indicates that the master signaling
-    		// valid write address and control information.
-		input wire  S_AXI_AWVALID,
-		// Write address ready. This signal indicates that the slave is ready
-    		// to accept an address and associated control signals.
-		output wire  S_AXI_AWREADY,
-		// Write data (issued by master, acceped by Slave) 
-		input wire [C_S_AXI_DATA_WIDTH-1 : 0] S_AXI_WDATA,
-		// Write strobes. This signal indicates which byte lanes hold
-    		// valid data. There is one write strobe bit for each eight
-    		// bits of the write data bus.    
-		input wire [(C_S_AXI_DATA_WIDTH/8)-1 : 0] S_AXI_WSTRB,
-		// Write valid. This signal indicates that valid write
-    		// data and strobes are available.
-		input wire  S_AXI_WVALID,
-		// Write ready. This signal indicates that the slave
-    		// can accept the write data.
-		output wire  S_AXI_WREADY,
-		// Write response. This signal indicates the status
-    		// of the write transaction.
-		output wire [1 : 0] S_AXI_BRESP,
-		// Write response valid. This signal indicates that the channel
-    		// is signaling a valid write response.
-		output wire  S_AXI_BVALID,
-		// Response ready. This signal indicates that the master
-    		// can accept a write response.
-		input wire  S_AXI_BREADY,
-		// Read address (issued by master, acceped by Slave)
-		input wire [C_S_AXI_ADDR_WIDTH-1 : 0] S_AXI_ARADDR,
-		// Protection type. This signal indicates the privilege
-    		// and security level of the transaction, and whether the
-    		// transaction is a data access or an instruction access.
-		input wire [2 : 0] S_AXI_ARPROT,
-		// Read address valid. This signal indicates that the channel
-    		// is signaling valid read address and control information.
-		input wire  S_AXI_ARVALID,
-		// Read address ready. This signal indicates that the slave is
-    		// ready to accept an address and associated control signals.
-		output wire  S_AXI_ARREADY,
-		// Read data (issued by slave)
-		output wire [C_S_AXI_DATA_WIDTH-1 : 0] S_AXI_RDATA,
-		// Read response. This signal indicates the status of the
-    		// read transfer.
-		output wire [1 : 0] S_AXI_RRESP,
-		// Read valid. This signal indicates that the channel is
-    		// signaling the required read data.
-    	output wire  S_AXI_RVALID,
-		// Read ready. This signal indicates that the master can
-   		// accept the read data and response information.
-		input wire  S_AXI_RREADY
-	);
+        // Global Reset Signal. This Signal is Active LOW
+        input wire                               S_AXI_ARESETN,
 
-	// AXI4LITE signals
-	reg [C_S_AXI_ADDR_WIDTH-1 : 0] 	axi_awaddr;
-	reg  	axi_awready;
-	reg  	axi_wready;
-	reg [1 : 0] 	axi_bresp;
-	reg  	axi_bvalid;
-	reg [C_S_AXI_ADDR_WIDTH-1 : 0] 	axi_araddr;
-	reg  	axi_arready;
-	reg [C_S_AXI_DATA_WIDTH-1 : 0] 	axi_rdata;
-	reg [1 : 0] 	axi_rresp;
-	reg  	axi_rvalid;
+        // Write Address Channel
+        input wire [C_S_AXI_ADDR_WIDTH-1 : 0]     S_AXI_AWADDR,
+        input wire [2 : 0]                        S_AXI_AWPROT,
+        input wire                               S_AXI_AWVALID,
+        output wire                              S_AXI_AWREADY,
+
+        // Write Data Channel
+        input wire [C_S_AXI_DATA_WIDTH-1 : 0]      S_AXI_WDATA,
+        input wire [(C_S_AXI_DATA_WIDTH/8)-1 : 0]  S_AXI_WSTRB,
+        input wire                                S_AXI_WVALID,
+        output wire                               S_AXI_WREADY,
+
+        // Write Response Channel
+        output wire [1 : 0]                        S_AXI_BRESP,
+        output wire                               S_AXI_BVALID,
+        input wire                                S_AXI_BREADY,
+
+        // Read Address Channel
+        input wire [C_S_AXI_ADDR_WIDTH-1 : 0]     S_AXI_ARADDR,
+        input wire [2 : 0]                        S_AXI_ARPROT,
+        input wire                               S_AXI_ARVALID,
+        output wire                              S_AXI_ARREADY,
+
+        // Read Data Channel
+        output wire [C_S_AXI_DATA_WIDTH-1 : 0]     S_AXI_RDATA,
+        output wire [1 : 0]                        S_AXI_RRESP,
+        output wire                               S_AXI_RVALID,
+        input wire                                S_AXI_RREADY
+);
+
+    // AXI4LITE signals
+    reg [C_S_AXI_ADDR_WIDTH-1 : 0] 	axi_awaddr;
+    reg  	axi_awready;
+    reg  	axi_wready;
+    reg [1 : 0] 	axi_bresp;
+    reg  	axi_bvalid;
+    reg [C_S_AXI_ADDR_WIDTH-1 : 0] 	axi_araddr;
+    reg  	axi_arready;
+    reg [C_S_AXI_DATA_WIDTH-1 : 0] 	axi_rdata;
+    reg [1 : 0] 	axi_rresp;
+    reg  	axi_rvalid;
 
 	// Example-specific design signals
 	// local parameter for addressing 32 bit / 64 bit C_S_AXI_DATA_WIDTH
@@ -178,6 +147,23 @@ module my_axi_ip_S00_AXI #
     wire  [7:0]        o_Tx_Serial;
     wire                 o_Tx_Done;
 
+    // Connection my debug ports
+    assign dbg_uart_write_en        =        uart_write_en;
+    assign dbg_uart_writing         =         uart_writing;
+    assign dbg_uart_write_data      =      uart_write_data;
+    assign dbg_uart_write_finished  =  uart_write_finished;
+    assign dbg_uart_write_count     =     uart_write_count;
+
+    assign dbg_uart_read_en         =         uart_read_en;
+    assign dbg_uart_reading         =         uart_reading;
+    assign dbg_uart_read_data       =       uart_read_data;
+    assign dbg_uart_read_finished   =   uart_read_finished;
+
+    assign dbg_o_tx_active          =          o_Tx_Active;
+    assign dbg_o_tx_serial          =          o_Tx_Serial;
+    assign dbg_o_tx_done            =            o_Tx_Done;
+    assign uart_txd                 =          o_Tx_Serial;
+
     // I/O Connections assignments
     assign S_AXI_AWREADY  =  axi_awready;
     assign S_AXI_WREADY   =   axi_wready;
@@ -187,27 +173,6 @@ module my_axi_ip_S00_AXI #
     assign S_AXI_RDATA    =    axi_rdata;
     assign S_AXI_RRESP    =    axi_rresp;
     assign S_AXI_RVALID   =   axi_rvalid;
-
-    // Implement axi_awready generation
-    // axi_awready is asserted for one S_AXI_ACLK clock cycle when both
-    // S_AXI_AWVALID and S_AXI_WVALID are asserted. axi_awready is
-    // de-asserted when reset is low.
-    // My Debug Ports
-    assign dbg_uart_write_en = uart_write_en; 
-    assign dbg_uart_writing = uart_writing;
-    assign dbg_uart_write_data = uart_write_data;
-    assign dbg_uart_write_finished = uart_write_finished;
-    assign dbg_uart_write_count = uart_write_count;
-
-    assign dbg_uart_read_en = uart_read_en;
-    assign dbg_uart_reading = uart_reading;
-    assign dbg_uart_read_data = uart_read_data;
-    assign dbg_uart_read_finished = uart_read_finished;
-
-    assign dbg_o_tx_active = o_Tx_Active;
-    assign dbg_o_tx_serial = o_Tx_Serial;
-    assign dbg_o_tx_done = o_Tx_Done;
-    assign uart_txd = o_Tx_Serial;
 
     // Loop 1: Write Address Channel
     always @( posedge S_AXI_ACLK )
@@ -335,16 +300,15 @@ module my_axi_ip_S00_AXI #
 	                slv_reg6[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 	              end
 	            end
+              // CUSTOM
               // SPECIAL CASE Register #7 or Write Address (0x1C)
-              //  - Trigger an i2c write
               4'h7:
                 begin
-                  i_Tx_DV <= 1'b1;
-                  i_Tx_Byte <= S_AXI_WDATA[(0*8) +: 8];
-
                   uart_write_en <= 1'b1;
-                  //uart_write_data <= 8'h61;
                   uart_write_data <= S_AXI_WDATA[(0*8) +: 8];
+                  // Add value to FIFO
+                  fifo_wr       <=                     1'b1;
+                  fifo_data_in  <=  S_AXI_WDATA[(0*8) +: 8];
                 end
               // SPECIAL CASE Register #8 or Write Address (0x20)
               //  - Write to register and constantly just increment its value
@@ -507,19 +471,7 @@ module my_axi_ip_S00_AXI #
         endcase
     end
 
-    // Add user logic here
-    // wires/regs needed for basic operation
-    //reg  [ 7:0] slave_addr;
-    //reg  [15:0] i_sub_addr;
-    //reg         i_sub_len;
-    //reg  [23:0] i_byte_len;
-    //reg  [ 7:0] i_data_write;
-    //reg          request_transmit;
-
-    //wire [7:0]   data_out; // output
-    //wire        valid_out; // output
-
-    // Loop 8: UART Control Loop
+    // Loop 8: FIFO Control Loop
     always @ (posedge S_AXI_ACLK) begin
         if ( S_AXI_ARESETN == 1'b0 ) begin
             axi_rdata  <= 0;
@@ -528,60 +480,39 @@ module my_axi_ip_S00_AXI #
 
             uart_writing          <=  0;
             uart_write_finished   <=  0;
+
+            fifo_wr       <=                     1'b0;
+            fifo_data_in  <=                    8'h00;
         end else begin
             // Not Writing
             if (!uart_write_en) begin
                 uart_writing <= 1'b0;
                 uart_write_finished <= 1'b0;
-                i_Tx_DV <= 1'b0;
-                i_Tx_Byte <= 8'b00000000;
+//                i_Tx_DV <= 1'b0;
+//                i_Tx_Byte <= 8'b00000000;
 
-            // Start Write Request
-            end if (uart_write_en && !uart_writing && !o_Tx_Active && !uart_write_finished) begin
+            // Insert into FIFO
+            end if (uart_write_en && !uart_writing && !uart_write_finished) begin
                 uart_writing <= 1'b1;
                 uart_write_finished <= 1'b0;
                 uart_write_count <= uart_write_count + 1;
 
-                i_Tx_DV <= 1'b1;
-                i_Tx_Byte <= uart_write_data;
+                // Add value to FIFO
+                fifo_wr       <=                     1'b1;
+                fifo_data_in  <=  S_AXI_WDATA[(0*8) +: 8];
+
+//                i_Tx_DV <= 1'b1;
+//                i_Tx_Byte <= uart_write_data;
             // IP is busy writing
-            end if (uart_write_en && uart_writing && !uart_write_finished && o_Tx_Active && !o_Tx_Done) begin
-                i_Tx_DV <= 1'b0;
-                i_Tx_Byte <= 8'b00000000;
-            // IP has finished writing
-            end if (uart_write_en && uart_writing && o_Tx_Done) begin
-                i_Tx_DV <= 1'b0;
+            end if (uart_write_en && uart_writing && !uart_write_finished) begin
+//                i_Tx_DV <= 1'b0;
+//                i_Tx_Byte <= 8'b00000000;
                 uart_writing <= 1'b0;
                 uart_write_finished <= 1'b1;
+
+                fifo_wr       <=                     1'b0;
+                fifo_data_in  <=                    8'h00;
             end
-//            end if (uart_write_en && !uart_write_finished) begin
-//                uart_writing <= 1'b0;
-//                uart_write_finished <= 1'b1;
-//                if (!busy && !request_transmit && !i2c_writing) begin
-//                    // START Writing
-//                    slave_addr <= (slv_reg0[7:0] << 1) | 0; // 0 means write
-//                    i_sub_addr <= slv_reg1[7:0];
-//                    i_sub_len <= 1'b0; // 0 = 8-bit
-//                    i_byte_len <= 24'h000001;
-//                    i_data_write <= 8'h00;
-//                    request_transmit <= 1'b1;
-//                    i2c_writing <= 1'b1;
-//                end
-//                else if (busy && request_transmit && i2c_writing) begin
-//                    // WRITING - reset requence to prevent
-//                    // a second write request
-//                    slave_addr <= 8'b00000000;
-//                    i_sub_addr <= 16'h0000;
-//                    i_sub_len <= 1'b0;
-//                    i_byte_len <= 24'h000000;
-//                    i_data_write <= 8'h00;
-//                    request_transmit <= 1'b0;
-//                end else if (!busy && !request_transmit && i2c_writing) begin
-//                    // Transaction is over
-//                    i2c_write_finished <= 1'b1;
-//                    i2c_writing <= 1'b0;
-//                end
-//            end // end if (i2c_write_en && !i2c_write_finished)
 
             // No read
             if (!slv_reg_rden & !uart_read_en) begin
@@ -640,6 +571,12 @@ module my_axi_ip_S00_AXI #
 //                end
 //            end
 
+    // Loop 8: FIFO Control Loop
+    always @ (posedge S_AXI_ACLK) begin
+        if ( S_AXI_ARESETN == 1'b0 ) begin
+        end
+        // 
+    end
 
     fifo_mem #()
         fifo_mem_inst (
