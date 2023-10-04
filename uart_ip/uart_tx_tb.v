@@ -40,8 +40,10 @@ module uart_tx_tb();
         #50;
         i_Tx_DV = 1'b0;
         i_Tx_Byte = 8'h61;
-        
+       
+        $display("waiting for o_Tx_Active");
         wait (o_Tx_Active == 1'b0);
+        $finish();
     end
 
 // Set Parameter CLKS_PER_BIT as follows:
