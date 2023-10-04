@@ -32,44 +32,41 @@ module my_axi_ip_S00_AXI_tb ();
         forever #(5) clk = !clk;  // 100MHz clock
     end
 
-//    wire scl_i;
-//    wire scl_o;
-//    wire scl_t;
-//    wire sda_i;
-//    wire sda_o;
-//    wire sda_t;
-//
 //    wire i2c_write_en;
 //    wire req_data_chunk;
 //    wire busy;
 //    wire nack;
-//
-//    reg axi_aresetn;
-//
-//    reg  [ 5:0]  axi_awaddr;
-//    
-//    reg  [ 2:0]  axi_awprot;
-//    reg          axi_awvalid;
-//    wire         axi_awready; // output
-//    
-//    reg  [31:0]  axi_wdata; 
-//    reg  [ 3:0]  axi_wstrb;
-//    reg          axi_wvalid;
-//    wire         axi_wready; // output
-//
-//    wire [ 1:0]  axi_bresp; // output
-//    wire         axi_bvalid; // output
-//    reg          axi_bready;
-//
-//    reg  [ 5:0]  axi_araddr;
-//    reg  [ 2:0]  axi_arprot;
-//    reg          axi_arvalid;
-//    wire         axi_arready; // output
-//
-//    wire [31:0]  axi_rdata; // output
-//    wire [ 1:0]  axi_rresp; // output
-//    wire         axi_rvalid; // output
-//    reg          axi_rready;
+    // Global Reset Signal.
+    reg axi_aresetn;
+
+    // Write Address Channel
+    reg  [ 5:0]  axi_awaddr;
+    reg  [ 2:0]  axi_awprot;
+    reg          axi_awvalid;
+    wire         axi_awready; // output
+
+    // Write Data Channel
+    reg  [31:0]  axi_wdata;
+    reg  [ 3:0]  axi_wstrb;
+    reg          axi_wvalid;
+    wire         axi_wready; // output
+
+    // Write Response Channel
+    wire [ 1:0]  axi_bresp; // output
+    wire         axi_bvalid; // output
+    reg          axi_bready;
+
+    // Read Address Channel
+    reg  [ 5:0]  axi_araddr;
+    reg  [ 2:0]  axi_arprot;
+    reg          axi_arvalid;
+    wire         axi_arready; // output
+
+    // Read Data Channel
+    wire [31:0]  axi_rdata; // output
+    wire [ 1:0]  axi_rresp; // output
+    wire         axi_rvalid; // output
+    reg          axi_rready;
 
     // Run Tests Here
     initial begin
@@ -91,6 +88,18 @@ module my_axi_ip_S00_AXI_tb ();
 
         $finish();
     end
+
+    wire                             uart_rxd;
+    wire                             uart_txd;
+
+    wire                        uart_clk_edge;
+    wire   [2:0]                    o_SM_Main;
+    wire                    dbg_uart_write_en;
+    wire                     dbg_uart_writing;
+    wire   [7:0]          dbg_uart_write_data;
+    wire              dbg_uart_write_finished;
+    wire                       dbg_uart_count;
+    wire   [7:0]         dbg_uart_write_count;
 
     my_axi_ip_S00_AXI #(
         .C_S_AXI_DATA_WIDTH(32),
@@ -116,7 +125,7 @@ module my_axi_ip_S00_AXI_tb ();
             // Global Clock Signal
             .S_AXI_ACLK(clk),
 
-             //Global Reset Signal. This Signal is Active LOW
+             //Global Reset Signal.
             .S_AXI_ARESETN(axi_aresetn),
 
             // Write Address Channel
