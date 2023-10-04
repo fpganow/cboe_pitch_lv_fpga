@@ -68,12 +68,23 @@ module my_axi_ip_S00_AXI_tb ();
     wire         axi_rvalid; // output
     reg          axi_rready;
 
+    task init_all_defaults;
+        begin
+            axi_aresetn = 1;
+
+            axi_awaddr  = 0;
+            axi_awprot  = 0;
+            axi_awready = 0;
+        end
+    endtask
+
     // Run Tests Here
     initial begin
         $timeformat(-9, 2, " ns", 20);
 
         // Initialize default values
         $display("Setting default values");
+        init_all_defaults;
 
         // Reset IP
 //        `reset_all

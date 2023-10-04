@@ -5,6 +5,7 @@
 #
 
 build:
+	@echo "----------------"
 	@echo "Building"
 	@iverilog -o test_run ./fifo_now/my_fifo.v \
 							 ./axi_to_uart/my_axi_S00_AXI_tb.v \
@@ -12,4 +13,7 @@ build:
 					         ./uart_now/uart_tx.v
 
 test: build
+	@echo "----------------"
 	@echo "Running tests"
+	@echo "----------------"
+	./test_run
