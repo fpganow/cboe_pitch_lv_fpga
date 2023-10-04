@@ -76,6 +76,7 @@ module my_axi_ip_S00_AXI_tb ();
         $timeformat(-9, 2, " ns", 20);
 
         // Initialize default values
+        $display("Setting default values");
 
         // Reset IP
 //        `reset_all

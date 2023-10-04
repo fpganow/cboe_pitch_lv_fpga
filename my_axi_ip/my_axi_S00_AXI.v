@@ -134,17 +134,17 @@ module my_axi_ip_S00_AXI #
     reg                    fifo_wr;
     reg  [7:0]        fifo_data_in;
     reg                    fifo_rd;
-    reg  [7:0]       fifo_data_out;
-    reg             fifo_fifo_full;
-    reg            fifo_fifo_empty;
-    reg        fifo_fifo_threshold;
-    reg         fifo_fifo_overflow;
-    reg        fifo_fifo_underflow;
+    wire  [7:0]       fifo_data_out;
+    wire             fifo_fifo_full;
+    wire            fifo_fifo_empty;
+    wire        fifo_fifo_threshold;
+    wire         fifo_fifo_overflow;
+    wire        fifo_fifo_underflow;
 
     reg                    i_Tx_DV;
     reg   [7:0]          i_Tx_Byte;
     wire               o_Tx_Active;
-    wire  [7:0]        o_Tx_Serial;
+    wire               o_Tx_Serial;
     wire                 o_Tx_Done;
 
     // Connection my debug ports
@@ -574,8 +574,15 @@ module my_axi_ip_S00_AXI #
     // Loop 8: FIFO Control Loop
     always @ (posedge S_AXI_ACLK) begin
         if ( S_AXI_ARESETN == 1'b0 ) begin
+        end else if (fifo_rd == 1'b1) begin
+            fifo_rd <= 1'b0;
+            i_Tx_DV <= 1'b1;
+            i_Tx_Byte <= fifo_data_out;
+        end else if (!fifo_fifo_empty) begin
+            fifo_rd <= 1'b1;
+            i_Tx_DV <= 1'b0;
+            i_Tx_Byte <= 8'h00;
         end
-        // 
     end
 
     fifo_mem #()
