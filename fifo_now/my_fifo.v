@@ -75,9 +75,9 @@ module read_pointer(rptr,
     always @(posedge clk or negedge rst_n)
     begin
         if(~rst_n)
-            rptr <= 5'b000000;
+            rptr <= 5'b00000;
         else if(fifo_rd)
-            rptr <= rptr + 5'b000001;
+            rptr <= rptr + 5'b00001;
         else
             rptr <= rptr;
     end
@@ -169,9 +169,9 @@ module write_pointer(wptr,
     always @(posedge clk or negedge rst_n)
     begin
         if(~rst_n)
-            wptr <= 5'b000000;
+            wptr <= 5'b00000;
         else if(fifo_we)
-            wptr <= wptr + 5'b000001;
+            wptr <= wptr + 5'b00001;
         else
             wptr <= wptr;
     end
