@@ -1,6 +1,6 @@
 `timescale 1 ns / 1 ps
 (* dont_touch="true" *)
-module my_axi_ip #
+module axi_to_uart_ip #
     (
         // Parameters of Axi Slave Bus Interface S00_AXI
         parameter integer C_S00_AXI_DATA_WIDTH	= 32,
@@ -74,10 +74,10 @@ module my_axi_ip #
     assign o_SM_Main_2 = o_SM_Main[2];
 
 // Instantiation of Axi Bus Interface S00_AXI
-    my_axi_ip_S00_AXI # (
+    axi_to_uart_S00_AXI # (
         .C_S_AXI_DATA_WIDTH(C_S00_AXI_DATA_WIDTH),
         .C_S_AXI_ADDR_WIDTH(C_S00_AXI_ADDR_WIDTH)
-    ) my_axi_ip_S00_AXI_inst (
+    ) axi_to_uart_S00_AXI_inst (
         .S_AXI_ACLK(s00_axi_aclk),
         .S_AXI_ARESETN(s00_axi_aresetn),
 

@@ -1,6 +1,6 @@
 `timescale 1 ns / 1 ps
 (* dont_touch="true" *)
-module my_axi_ip_S00_AXI #
+module axi_to_uart_S00 #
     (
         // Users to add parameters here
         // User parameters ends

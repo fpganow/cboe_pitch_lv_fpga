@@ -23,7 +23,7 @@
 //    // Read Data Channel \
 //    axi_rready = 1'b0;
 
-module my_axi_ip_S00_AXI_tb ();
+module axi_to_uart_S00_tb ();
 
     // Clock Signal 100MHz
     reg clk;
@@ -112,11 +112,11 @@ module my_axi_ip_S00_AXI_tb ();
     wire                       dbg_uart_count;
     wire   [7:0]         dbg_uart_write_count;
 
-    my_axi_ip_S00_AXI #(
+    axi_to_uart_S00 #(
         .C_S_AXI_DATA_WIDTH(32),
         .C_S_AXI_ADDR_WIDTH(6)
     )
-        my_axi_ip_S00_AXI_dut(
+        axi_uart_to_S00_dut(
             // UART
             .uart_rxd                (                uart_rxd),
             .uart_txd                (                uart_txd),
