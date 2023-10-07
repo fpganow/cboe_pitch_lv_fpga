@@ -72,24 +72,51 @@ module axi_to_uart_S00_tb ();
         begin
             axi_aresetn = 1;
 
-            axi_awaddr  = 0;
-            axi_awprot  = 0;
-            axi_awready = 0;
+            // Address Write
+            axi_awaddr   =  0;
+            axi_awprot   =  0;
+            axi_awvalid  =  0;
+            // Write
+            axi_wdata    =  0;
+            axi_wstrb    =  0;
+            axi_wvalid   =  0;
+            // Write Response
+            axi_bready   =  0;
+            // Read Address
+            axi_araddr   =  0;
+            axi_arprot   =  0;
+            axi_arvalid  =  0;
+            // Read Data
+            axi_rready   =  0;
         end
     endtask
 
+    string vcd_file = "axi_to_uart.vcd";
     // Run Tests Here
     initial begin
         $timeformat(-9, 2, " ns", 20);
+        $display("Saving output to file: %s", vcd_file);
+        $dumpfile(vcd_file);
+        $dumpvars(0, axi_to_uart_S00_tb);
 
         // Initialize default values
         $display("Setting default values");
         init_all_defaults;
 
+        // Wait 2 clock cycles
+        #20;
+
         // Reset IP
-//        `reset_all
+        $display("Resetting IP");
+        axi_aresetn = 1;
+        #20;
+        axi_aresetn = 0;
+        // Wait 2 clock cycles
+        #20;
 
-
+        // Initiate a Write Transaction
+        axi_awaddr = 5'b00000;
+        axi_awvalid = 1;
 //        axi_awvalid = 1'b0;
 //        axi_wvalid = 1'b0;
 //        axi_bready = 1'b0;
@@ -97,6 +124,7 @@ module axi_to_uart_S00_tb ();
 //        axi_rready = 1'b0;
 //        $display("Wrote 0xEF to register 7");
 
+        $display("Simulation Finished");
         $finish();
     end
 
@@ -143,17 +171,17 @@ module axi_to_uart_S00_tb ();
             .S_AXI_AWADDR(axi_awaddr),
             .S_AXI_AWPROT(axi_awprot),
             .S_AXI_AWVALID(axi_awvalid),
-            .S_AXI_AWREADY(axi_awready),
+            .S_AXI_AWREADY(axi_awready), // output
 
             // Write Data Channel
             .S_AXI_WDATA(axi_wdata),
             .S_AXI_WSTRB(axi_wstrb),
             .S_AXI_WVALID(axi_wvalid),
-            .S_AXI_WREADY(axi_wready),
+            .S_AXI_WREADY(axi_wready), // output
 
             // Write Response Channel
-            .S_AXI_BRESP(axi_bresp),
-            .S_AXI_BVALID(axi_bvalid),
+            .S_AXI_BRESP(axi_bresp), // output
+            .S_AXI_BVALID(axi_bvalid), // output
             .S_AXI_BREADY(axi_bready),
 
             // Read Address Channel

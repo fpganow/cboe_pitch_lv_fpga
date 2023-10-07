@@ -1,0 +1,24 @@
+[*]
+[*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
+[*] Fri Oct  6 23:12:27 2023
+[*]
+[dumpfile] "/mnt/d/work/fpganow/cboe_pitch_lv_fpga/axi_to_uart.vcd"
+[dumpfile_mtime] "Fri Oct  6 23:06:19 2023"
+[dumpfile_size] 7740
+[savefile] "/mnt/d/work/fpganow/cboe_pitch_lv_fpga/updated.gtkw"
+[timestart] 0
+[size] 2908 1081
+[pos] -1 -1
+*-13.000000 60000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] axi_to_uart_S00_tb.
+[treeopen] axi_to_uart_S00_tb.axi_uart_to_S00_dut.
+[sst_width] 372
+[signals_width] 369
+[sst_expanded] 1
+[sst_vpaned_height] 322
+@28
+axi_to_uart_S00_tb.clk
+@29
+axi_to_uart_S00_tb.axi_aresetn
+[pattern_trace] 1
+[pattern_trace] 0

@@ -44,16 +44,22 @@ fifo_mem tb (/*AUTOARG*/
 // 8. Initial Conditions
 initial
     begin
-        clk     = 1'b0;
-        rst_n     = 1'b0;
-        wr     = 1'b0;
-        rd     = 1'b0;
-        data_in     = 8'd0;
+        clk      =  1'b0;
+        rst_n    =  1'b0;
+        wr       =  1'b0;
+        rd       =  1'b0;
+        data_in  =  8'd0;
     end
 
 // 9. Generating Test Vectors
 initial
     begin
+        // iverilog -o <output_file> <source_file> ...
+        // vvp <output_file>
+        // gtkwave <vcd_file>
+        $display("Setting dump file");
+        $dumpfile("fifo_now_tb.vcd");
+        $dumpvars(0, tb_fifo_32);
         main;
     end
 
@@ -112,7 +118,7 @@ task debug_fifo;
         $display("--------------       -------------------");
         $display("----------------     ---------------------");
         $display("----------------------------------------------");
-        $monitor("TIME = %d, wr = %b, rd = %b, data_in = %h",$time, wr, rd, data_in);
+        //$monitor("TIME = %d, wr = %b, rd = %b, data_in = %h",$time, wr, rd, data_in);
     end
 endtask
 
@@ -128,7 +134,7 @@ always @ (posedge clk) begin
         waddr <= waddr + 1;
     end
 
-    $display("TIME = %d, data_out = %d, mem = %d",$time, data_out,mem[raddr]);
+    //$display("TIME = %d, data_out = %d, mem = %d",$time, data_out,mem[raddr]);
     if (~rst_n)
         raddr     <= 6'd0;
     else if (rd & (~fifo_empty))

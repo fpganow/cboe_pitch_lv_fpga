@@ -3,6 +3,24 @@
 # axi_to_uart
 # fifo_now
 #
+.PHONY: axi_to_uart
+axi_to_uart:
+	@echo "------------------------------------------------------------"
+	@echo "|  Building  -  axi_to_uart                                |"
+	@echo "------------------------------------------------------------"
+	@iverilog -o axi_to_uart_test -g2005-sv \
+	                              ./axi_to_uart/axi_to_uart_S00.v \
+		                          ./axi_to_uart/axi_to_uart_S00_tb.sv \
+								  ./fifo_now/fifo_now.v \
+								  ./uart_now/uart_tx_now.v
+	@echo "------------------------------------------------------------"
+	@echo "|  Simulating  -  axi_to_uart                              |"
+	@echo "------------------------------------------------------------"
+	@vvp axi_to_uart_test
+	@echo "------------------------------------------------------------"
+	@echo "|  Launching GTKWave                                       |"
+	@echo "------------------------------------------------------------"
+#	gtkwave ./axi_to_uart.vcd
 
 build:
 	@echo "----------------"
