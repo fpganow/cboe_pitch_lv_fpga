@@ -25,13 +25,6 @@
 
 module axi_to_uart_S00_tb ();
 
-    // Clock Signal 100MHz
-    reg clk;
-    initial begin
-        clk = 0;
-        forever #(5) clk = !clk;  // 100MHz clock
-    end
-
 //    wire i2c_write_en;
 //    wire req_data_chunk;
 //    wire busy;
@@ -68,7 +61,16 @@ module axi_to_uart_S00_tb ();
     wire         axi_rvalid; // output
     reg          axi_rready;
 
-    task init_all_defaults;
+    // Clock Signal 100MHz
+    // Rising Edge is at 5ns, 15ns
+    // Change signals 6ns to 14ns
+    reg clk;
+    initial begin
+        clk = 0;
+        forever #(5) clk = !clk;  // 100MHz clock
+    end
+
+    task reset_all_signals;
         begin
             axi_aresetn = 1;
 
@@ -95,34 +97,67 @@ module axi_to_uart_S00_tb ();
     // Run Tests Here
     initial begin
         $timeformat(-9, 2, " ns", 20);
-        $display("Saving output to file: %s", vcd_file);
+        $display("Saving output to file:\n\t%s", vcd_file);
         $dumpfile(vcd_file);
         $dumpvars(0, axi_to_uart_S00_tb);
 
         // Initialize default values
-        $display("Setting default values");
-        init_all_defaults;
+        $display(" + Setting default values");
+        reset_all_signals;
 
-        // Wait 2 clock cycles
-        #20;
+        // Wait 1 clock cycle
+        #10;
 
         // Reset IP
-        $display("Resetting IP");
-        axi_aresetn = 1;
-        #20;
+        $display(" + Resetting IP");
+        #10;
+        // Trigger reset
         axi_aresetn = 0;
-        // Wait 2 clock cycles
         #20;
+        axi_aresetn = 1;
 
-        // Initiate a Write Transaction
-        axi_awaddr = 5'b00000;
+        $display("Test #1 - Write to Reg #1 Value 0xDEADBEEF");
+        // Current time is 30ns (falling edge)
         axi_awvalid = 1;
-//        axi_awvalid = 1'b0;
-//        axi_wvalid = 1'b0;
-//        axi_bready = 1'b0;
-//        axi_arvalid = 1'b0;
-//        axi_rready = 1'b0;
-//        $display("Wrote 0xEF to register 7");
+        axi_awaddr = 6'b000100;
+        axi_wvalid = 1;
+        axi_wstrb = 4'b1111;
+        axi_wdata = 32'hDEADBEEF;
+        axi_bready = 1;
+        @(posedge clk); // Slave has just read the values from the master
+        @(posedge clk); // Slave has set responses to AW and W
+        assert (axi_awready == 1) $display (" + Address Write Asserted.");
+            else $error(" - Failed Address Write Assertion.");
+        assert (axi_wready == 1) $display (" + Write Asserted.");
+            else $error(" - Failed Write Assertion.");
+        @(posedge clk); // Slave has ack'd the Write Reponse
+        assert (axi_bready == 1) $display (" + Write Response Asserted.");
+            else $error(" - Failed Write Response Assertion.");
+        reset_all_signals;
+
+        $display("Test #2 - Read value written to Reg #1 Back");
+        axi_araddr = 6'b000100;
+        axi_arvalid = 1'b1;
+        axi_rready = 1'b1;
+        @(posedge clk); // Slave has just read Read Request
+        @(posedge clk); // Slave has just asserted read address Request
+        assert (axi_arready == 1) $display (" + Read Address Asserted.");
+            else $error(" - Failed Read Address Assertion.");
+        axi_arvalid = 1'b0;
+        axi_araddr = 0;
+        @(posedge clk); // Slave should have responded with data
+        assert (axi_rvalid == 1) $display (" + Read Data Valid.");
+            else $error(" - Failed Read Data Valid.");
+        assert (axi_rdata == 32'hdeadbeef) $display (" + Read Data .");
+            else $error(" - Failed Read Data .");
+
+        $display("Test #3 - Initiate a UART Write");
+        axi_awvalid = 1;
+        axi_awaddr = 6'h1C;
+        axi_wvalid = 1;
+        axi_wstrb = 4'b1111;
+        axi_wdata = 32'hDEADBEEF;
+        axi_bready = 1;
 
         $display("Simulation Finished");
         $finish();

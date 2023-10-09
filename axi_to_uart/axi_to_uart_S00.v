@@ -254,7 +254,6 @@ module axi_to_uart_S00 #
 	      slv_reg14 <= 0;
 	      slv_reg15 <= 0;
           uart_write_en <= 1'b0;
-          uart_write_count <= 8'h00;
 	    end
 	  else begin
 	    if (slv_reg_wren)
@@ -415,7 +414,7 @@ module axi_to_uart_S00 #
           axi_arready <= 1'b0;
           axi_araddr  <= 32'b0;
           // Reset uart_read_en
-          //i2c_read_en <= 1'b0;
+          uart_read_en <= 1'b0;
         end
       else
         begin
@@ -452,7 +451,7 @@ module axi_to_uart_S00 #
       // Address decoding for reading registers
         case ( axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] )
           4'h0   : reg_data_out <= slv_reg0;
-          4'h1   : reg_data_out <= uart_write_count;
+          4'h1   : reg_data_out <= slv_reg1;
           4'h2   : reg_data_out <= slv_reg2;
           4'h3   : reg_data_out <= slv_reg3;
           4'h4   : reg_data_out <= slv_reg4;

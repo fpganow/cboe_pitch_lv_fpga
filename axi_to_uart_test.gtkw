@@ -1,0 +1,101 @@
+[*]
+[*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
+[*] Mon Oct  9 01:47:42 2023
+[*]
+[dumpfile] "/mnt/d/work/fpganow/cboe_pitch_lv_fpga/axi_to_uart.vcd"
+[dumpfile_mtime] "Mon Oct  9 01:46:52 2023"
+[dumpfile_size] 8409
+[savefile] "/mnt/d/work/fpganow/cboe_pitch_lv_fpga/axi_to_uart_test.gtkw"
+[timestart] 0
+[size] 3347 1714
+[pos] 90 66
+*-13.000000 43370 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] axi_to_uart_S00_tb.
+[treeopen] axi_to_uart_S00_tb.axi_uart_to_S00_dut.
+[sst_width] 372
+[signals_width] 598
+[sst_expanded] 1
+[sst_vpaned_height] 542
+@28
+axi_to_uart_S00_tb.clk
+axi_to_uart_S00_tb.axi_aresetn
+@200
+-
+@28
+axi_to_uart_S00_tb.axi_uart_to_S00_dut.S_AXI_AWVALID
+axi_to_uart_S00_tb.axi_awvalid
+axi_to_uart_S00_tb.axi_uart_to_S00_dut.S_AXI_AWREADY
+axi_to_uart_S00_tb.axi_awready
+@22
+axi_to_uart_S00_tb.axi_awaddr[5:0]
+@28
+axi_to_uart_S00_tb.axi_awprot[2:0]
+@200
+-
+@28
+[color] 1
+axi_to_uart_S00_tb.axi_uart_to_S00_dut.S_AXI_WVALID
+[color] 1
+axi_to_uart_S00_tb.axi_wvalid
+[color] 1
+axi_to_uart_S00_tb.axi_uart_to_S00_dut.S_AXI_WREADY
+[color] 1
+axi_to_uart_S00_tb.axi_wready
+@22
+[color] 1
+axi_to_uart_S00_tb.axi_wdata[31:0]
+[color] 1
+axi_to_uart_S00_tb.axi_wstrb[3:0]
+@200
+-
+@28
+[color] 2
+axi_to_uart_S00_tb.axi_uart_to_S00_dut.S_AXI_BVALID
+[color] 2
+axi_to_uart_S00_tb.axi_bvalid
+[color] 2
+axi_to_uart_S00_tb.axi_uart_to_S00_dut.S_AXI_BREADY
+[color] 2
+axi_to_uart_S00_tb.axi_bready
+[color] 2
+axi_to_uart_S00_tb.axi_bresp[1:0]
+@200
+-
+@28
+[color] 3
+axi_to_uart_S00_tb.axi_uart_to_S00_dut.S_AXI_ARVALID
+[color] 3
+axi_to_uart_S00_tb.axi_arvalid
+[color] 3
+axi_to_uart_S00_tb.axi_arready
+@22
+[color] 3
+axi_to_uart_S00_tb.axi_araddr[5:0]
+@28
+[color] 3
+axi_to_uart_S00_tb.axi_arprot[2:0]
+@200
+-
+@28
+[color] 4
+axi_to_uart_S00_tb.axi_uart_to_S00_dut.S_AXI_RVALID
+[color] 4
+axi_to_uart_S00_tb.axi_rvalid
+[color] 4
+axi_to_uart_S00_tb.axi_rready
+@22
+[color] 4
+axi_to_uart_S00_tb.axi_rdata[31:0]
+@28
+[color] 4
+axi_to_uart_S00_tb.axi_rresp[1:0]
+@200
+-
+@28
+axi_to_uart_S00_tb.axi_uart_to_S00_dut.uart_write_en
+axi_to_uart_S00_tb.axi_uart_to_S00_dut.uart_writing
+axi_to_uart_S00_tb.axi_uart_to_S00_dut.uart_write_finished
+@29
+axi_to_uart_S00_tb.axi_uart_to_S00_dut.uart_txd
+[pattern_trace] 1
+[pattern_trace] 0
