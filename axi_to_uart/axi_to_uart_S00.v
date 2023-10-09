@@ -120,32 +120,32 @@ module axi_to_uart_S00 #
     // CUSTOM
     // My Signals
     // UART
-    reg              uart_write_en;
-    reg               uart_writing;
-    reg  [7:0]     uart_write_data;
-    reg        uart_write_finished;
-    reg  [7:0]    uart_write_count;
-    reg               uart_read_en;
-    reg               uart_reading;
-    reg  [7:0]      uart_read_data;
-    reg         uart_read_finished;
+    reg                uart_write_en;
+    reg                 uart_writing;
+    reg   [7:0]      uart_write_data;
+    reg          uart_write_finished;
+    reg   [7:0]     uart_write_count;
+    reg                 uart_read_en;
+    reg                 uart_reading;
+    reg   [7:0]       uart_read_data;
+    reg           uart_read_finished;
 
     // FIFO Signals
-    reg                    fifo_wr;
-    reg  [7:0]        fifo_data_in;
-    reg                    fifo_rd;
-    wire  [7:0]       fifo_data_out;
-    wire             fifo_fifo_full;
-    wire            fifo_fifo_empty;
-    wire        fifo_fifo_threshold;
-    wire         fifo_fifo_overflow;
-    wire        fifo_fifo_underflow;
+    reg                      fifo_wr;
+    reg   [7:0]         fifo_data_in;
+    reg                      fifo_rd;
+    wire  [7:0]        fifo_data_out;
+    wire              fifo_fifo_full;
+    wire             fifo_fifo_empty;
+    wire         fifo_fifo_threshold;
+    wire          fifo_fifo_overflow;
+    wire         fifo_fifo_underflow;
 
-    reg                    i_Tx_DV;
-    reg   [7:0]          i_Tx_Byte;
-    wire               o_Tx_Active;
-    wire               o_Tx_Serial;
-    wire                 o_Tx_Done;
+    reg                      i_Tx_DV;
+    reg   [7:0]            i_Tx_Byte;
+    wire                 o_Tx_Active;
+    wire                 o_Tx_Serial;
+    wire                   o_Tx_Done;
 
     // Connection my debug ports
     assign dbg_uart_write_en        =        uart_write_en;
@@ -209,13 +209,13 @@ module axi_to_uart_S00 #
     end
 
     // Loop 2: Write Data Channel
-	always @( posedge S_AXI_ACLK )
-	begin
-	  if ( S_AXI_ARESETN == 1'b0 )
-	    begin
-	      axi_wready <= 1'b0;
-	    end
-	  else
+    always @( posedge S_AXI_ACLK )
+    begin
+      if ( S_AXI_ARESETN == 1'b0 )
+        begin
+          axi_wready <= 1'b0;
+        end
+      else
 	    begin
 	      if (~axi_wready && S_AXI_WVALID && S_AXI_AWVALID && aw_en )
 	        begin
@@ -233,31 +233,34 @@ module axi_to_uart_S00 #
 
     // Loop 3: Handle Write Data
     // I prefer this to be part of Loop 2, but it is complicated
-	always @( posedge S_AXI_ACLK )
-	begin
-	  if ( S_AXI_ARESETN == 1'b0 )
-	    begin
-	      slv_reg0 <= 0;
-	      slv_reg1 <= 0;
-	      slv_reg2 <= 0;
-	      slv_reg3 <= 0;
-	      slv_reg4 <= 0;
-	      slv_reg5 <= 0;
-	      slv_reg6 <= 0;
-	      slv_reg7 <= 0;
-	      slv_reg8 <= 0;
-	      slv_reg9 <= 0;
-	      slv_reg10 <= 0;
-	      slv_reg11 <= 0;
-	      slv_reg12 <= 0;
-	      slv_reg13 <= 0;
-	      slv_reg14 <= 0;
-	      slv_reg15 <= 0;
-          uart_write_en <= 1'b0;
-	    end
-	  else begin
-	    if (slv_reg_wren)
-	      begin
+    always @( posedge S_AXI_ACLK )
+    begin
+      if ( S_AXI_ARESETN == 1'b0 )
+		begin
+          slv_reg0 <= 0;
+          slv_reg1 <= 0;
+          slv_reg2 <= 0;
+          slv_reg3 <= 0;
+          slv_reg4 <= 0;
+          slv_reg5 <= 0;
+          slv_reg6 <= 0;
+          slv_reg7 <= 0;
+          slv_reg8 <= 0;
+          slv_reg9 <= 0;
+          slv_reg10 <= 0;
+          slv_reg11 <= 0;
+          slv_reg12 <= 0;
+          slv_reg13 <= 0;
+          slv_reg14 <= 0;
+          slv_reg15 <= 0;
+//          uart_write_en <= 1'b0;
+
+          fifo_wr       <=                     1'b0;
+          fifo_data_in  <=             32'h00000000;
+        end
+      else begin
+        if (slv_reg_wren)
+          begin
               // OPT_MEM_ADDR_BITS = 3
               // ADDR_LSB = 2
               // 5 downto 2
@@ -303,8 +306,8 @@ module axi_to_uart_S00 #
               // SPECIAL CASE Register #7 or Write Address (0x1C)
               4'h7:
                 begin
-                  uart_write_en <= 1'b1;
-                  uart_write_data <= S_AXI_WDATA[(0*8) +: 8];
+//                  uart_write_en <= 1'b1;
+//                  uart_write_data <= S_AXI_WDATA[(0*8) +: 8];
                   // Add value to FIFO
                   fifo_wr       <=                     1'b1;
                   fifo_data_in  <=  S_AXI_WDATA[(0*8) +: 8];
@@ -352,6 +355,8 @@ module axi_to_uart_S00 #
 	                slv_reg15[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 	              end
 	          default : begin
+                  fifo_wr       <=                     1'b0;
+                  fifo_data_in  <=             32'h00000000;
 	                      slv_reg0 <= slv_reg0;
 	                      slv_reg1 <= slv_reg1;
 	                      slv_reg2 <= slv_reg2;
@@ -372,10 +377,10 @@ module axi_to_uart_S00 #
 	        endcase
 	      end
 	  end
-      if (uart_write_finished)
-        begin
-            uart_write_en <= 1'b0;
-        end
+//      if (uart_write_finished)
+//        begin
+//            uart_write_en <= 1'b0;
+//        end
 	end
 
     // Loop 5: Write Response Channel
@@ -414,7 +419,6 @@ module axi_to_uart_S00 #
           axi_arready <= 1'b0;
           axi_araddr  <= 32'b0;
           // Reset uart_read_en
-          uart_read_en <= 1'b0;
         end
       else
         begin
@@ -471,117 +475,54 @@ module axi_to_uart_S00 #
     end
 
     // Loop 8: FIFO Control Loop
+    reg fifo_req;
     always @ (posedge S_AXI_ACLK) begin
-        if ( S_AXI_ARESETN == 1'b0 ) begin
-            axi_rdata  <= 0;
-            axi_rvalid <= 0;
-            axi_rresp  <= 0;
+      if ( S_AXI_ARESETN == 1'b0 ) begin
+          axi_rdata      <=  0;
+          axi_rvalid     <=  0;
+          axi_rresp      <=  0;
 
-            uart_writing          <=  0;
-            uart_write_finished   <=  0;
+          fifo_rd        <=  0;
+          fifo_req       <=  0;
 
-            fifo_wr       <=                     1'b0;
-            fifo_data_in  <=                    8'h00;
-        end else begin
-            // Not Writing
-            if (!uart_write_en) begin
-                uart_writing <= 1'b0;
-                uart_write_finished <= 1'b0;
-//                i_Tx_DV <= 1'b0;
-//                i_Tx_Byte <= 8'b00000000;
-
-            // Insert into FIFO
-            end if (uart_write_en && !uart_writing && !uart_write_finished) begin
-                uart_writing <= 1'b1;
-                uart_write_finished <= 1'b0;
-                uart_write_count <= uart_write_count + 1;
-
-                // Add value to FIFO
-                fifo_wr       <=                     1'b1;
-                fifo_data_in  <=  S_AXI_WDATA[(0*8) +: 8];
-
-//                i_Tx_DV <= 1'b1;
-//                i_Tx_Byte <= uart_write_data;
-            // IP is busy writing
-            end if (uart_write_en && uart_writing && !uart_write_finished) begin
-//                i_Tx_DV <= 1'b0;
-//                i_Tx_Byte <= 8'b00000000;
-                uart_writing <= 1'b0;
-                uart_write_finished <= 1'b1;
-
-                fifo_wr       <=                     1'b0;
-                fifo_data_in  <=                    8'h00;
-            end
-
-            // No read
-            if (!slv_reg_rden & !uart_read_en) begin
-                axi_rvalid <= 1'b0;
-            end
-            //  slv_reg_rden = (axi_arready && S_AXI_ARVALID && ~axi_rvalid)
-            // Regular Read
-            if (slv_reg_rden & !uart_read_en) begin
-                axi_rdata <= reg_data_out;     // register read data
-                axi_rvalid <= 1'b1;
-                axi_rresp  <= 2'b0; // 'OKAY' response
-            end
-      end
-    end
-//            if (!i2c_read_en) begin
-//                i2c_reading <= 1'b0;
-//                i2c_read_finished <= 1'b0;
-//            end if (i2c_read_en & !i2c_read_finished) begin
-//                // Handle Response Loop
-//                // Q: Are busy and valid_out valid at the same time?
-//                if (valid_out && !S_AXI_RREADY) begin
-//                    axi_rvalid <= 1'b1;
-//                    axi_rresp  <= 2'b0; // 'OKAY' response
-//                    axi_rdata <= data_out;
-//                end else begin
-//                    axi_rvalid <= 1'b0;
-//                end
-//                // I2C Control Loop
-//                if (!busy && !request_transmit && !i2c_reading) begin
-//                    // START Reading
-//                    //slave_addr <= (slv_reg0[7:0] << 1) | 1; // 1 means read
-//                    //i_sub_addr <= slv_reg1[7:0];
-//                    //i_sub_len <= 1'b0; // 0 = 8-bit
-//                    //i_byte_len <= slv_reg2[7:0];
-//                    //i_byte_len <= 24'h000002;
-//                    i_data_write <= 8'h00;
-//                    request_transmit <= 1'b1;
-//                    i2c_reading <= 1'b1;
-//                end else if (busy && request_transmit && i2c_reading) begin
-//                    // READING - reset requence to prevent
-//                    // a second read request
-//                    //slave_addr <= 8'b00000000;
-//                    //i_sub_addr <= 16'h0000;
-//                    //i_sub_len <= 1'b0;
-//                    //i_byte_len <= 24'h000000;
-//                    //i_data_write <= 8'h00;
-//                    request_transmit <= 1'b0;
-//                end else if (!busy && !request_transmit && i2c_reading) begin
-//                    // Transaction is over
-//                    i2c_reading <= 1'b0;
-//                    // Copy read data
-//                    //axi_rdata <= data_out;
-//                    //axi_rvalid <= 1'b1;
-//                    //axi_rresp  <= 2'b0; // 'OKAY' response
-//                    i2c_read_finished  <=  1'b1;
-//                end
-//            end
-
-    // Loop 8: FIFO Control Loop
-    always @ (posedge S_AXI_ACLK) begin
-        if ( S_AXI_ARESETN == 1'b0 ) begin
-        end else if (fifo_rd == 1'b1) begin
-            fifo_rd <= 1'b0;
-            i_Tx_DV <= 1'b1;
+          i_Tx_DV        <=  0;
+          i_Tx_Byte      <=  0;
+      end else begin
+          // UART not busy AND FIFO not empty
+          if (!fifo_req && !o_Tx_Active && !fifo_fifo_empty) begin
+            // Then request data item
+            fifo_rd     <=  1;
+            fifo_req    <=  1;
+            i_Tx_DV     <=  0;
+            i_Tx_Byte   <=  0;
+            axi_rdata   <=  0;
+            axi_rvalid  <=  0;
+            axi_rresp   <=  0;
+// TODO: o_Tx_Active has a delay
+          // Did we request during last clock cycle?
+          end if (fifo_req) begin
+            // Then data should be valid.
+            // Stop request
+            fifo_rd   <=  0;
+            fifo_req  <=  0;
+            // Start uart write
+            i_Tx_DV   <=  1;
             i_Tx_Byte <= fifo_data_out;
-        end else if (!fifo_fifo_empty) begin
-            fifo_rd <= 1'b1;
-            i_Tx_DV <= 1'b0;
-            i_Tx_Byte <= 8'h00;
-        end
+          end else begin
+            i_Tx_DV     <=  0;
+            i_Tx_Byte   <=  0;
+          end
+          // READ Section
+          if(slv_reg_rden) begin
+            axi_rdata   <=  reg_data_out;
+            axi_rvalid  <=  1;
+            axi_rresp   <=  0;
+          end else begin
+            axi_rdata   <=  0;
+            axi_rvalid  <=  0;
+            axi_rresp   <=  0;
+          end
+      end
     end
 
     fifo_mem #()
@@ -597,7 +538,7 @@ module axi_to_uart_S00 #
         .data_out(fifo_data_out),
         // Status
         .fifo_full(fifo_fifo_full),
-        .fifo_empty(fifo_fifo_empty), 
+        .fifo_empty(fifo_fifo_empty),
         .fifo_threshold(fifo_fifo_threshold),
         .fifo_overflow(fifo_fifo_overflow),
         .fifo_underflow(fifo_fifo_underflow)
@@ -615,6 +556,6 @@ module axi_to_uart_S00 #
         .o_SM_Main(o_SM_Main),
         .uart_clk_edge(uart_clk_edge)
     );
-	// User logic ends
+    // User logic ends
 
     endmodule

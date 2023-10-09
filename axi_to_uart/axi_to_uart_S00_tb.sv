@@ -6,60 +6,40 @@
 // 
 ///////////////////////////////////////////////////////////////////////////////
 
-//`define reset_all() \
-//    // Address Write Channel \
-//    axi_awaddr = 5'b00000; \
-//    axi_awvalid = 1'b0; \
-//    // Write Channel \
-//    axi_wdata = 32'h0000; \
-//    axi_wstrb = 4'b0000; \
-//    axi_wvalid = 1'b0; \
-//    // Write Response Channel \
-//    axi_bready = 1'b0; \
-//    // Read Address Channel \
-//    axi_araddr = 5'b00000; \
-//    axi_arprot = 3'b000; \
-//    axi_arvalid = 1'b0; \
-//    // Read Data Channel \
-//    axi_rready = 1'b0;
 
 module axi_to_uart_S00_tb ();
 
-//    wire i2c_write_en;
-//    wire req_data_chunk;
-//    wire busy;
-//    wire nack;
     // Global Reset Signal.
     reg axi_aresetn;
 
     // Write Address Channel
-    reg  [ 5:0]  axi_awaddr;
-    reg  [ 2:0]  axi_awprot;
-    reg          axi_awvalid;
-    wire         axi_awready; // output
+    reg   [ 5:0]   axi_awaddr;
+    reg   [ 2:0]   axi_awprot;
+    reg           axi_awvalid;
+    wire          axi_awready; // output
 
     // Write Data Channel
-    reg  [31:0]  axi_wdata;
-    reg  [ 3:0]  axi_wstrb;
-    reg          axi_wvalid;
-    wire         axi_wready; // output
+    reg   [31:0]    axi_wdata;
+    reg   [ 3:0]    axi_wstrb;
+    reg            axi_wvalid;
+    wire           axi_wready; // output
 
     // Write Response Channel
-    wire [ 1:0]  axi_bresp; // output
-    wire         axi_bvalid; // output
-    reg          axi_bready;
+    wire  [ 1:0]    axi_bresp; // output
+    wire           axi_bvalid; // output
+    reg            axi_bready;
 
     // Read Address Channel
-    reg  [ 5:0]  axi_araddr;
-    reg  [ 2:0]  axi_arprot;
-    reg          axi_arvalid;
-    wire         axi_arready; // output
+    reg   [ 5:0]   axi_araddr;
+    reg   [ 2:0]   axi_arprot;
+    reg           axi_arvalid;
+    wire          axi_arready; // output
 
     // Read Data Channel
-    wire [31:0]  axi_rdata; // output
-    wire [ 1:0]  axi_rresp; // output
-    wire         axi_rvalid; // output
-    reg          axi_rready;
+    wire  [31:0]    axi_rdata; // output
+    wire  [ 1:0]    axi_rresp; // output
+    wire           axi_rvalid; // output
+    reg            axi_rready;
 
     // Clock Signal 100MHz
     // Rising Edge is at 5ns, 15ns
@@ -158,7 +138,11 @@ module axi_to_uart_S00_tb ();
         axi_wstrb = 4'b1111;
         axi_wdata = 32'hDEADBEEF;
         axi_bready = 1;
+        @(posedge clk);
 
+        wait(dbg_o_tx_active == 1);
+        wait(dbg_o_tx_done == 1);
+        #2000;
         $display("Simulation Finished");
         $finish();
     end

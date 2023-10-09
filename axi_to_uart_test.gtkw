@@ -1,21 +1,21 @@
 [*]
-[*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
-[*] Mon Oct  9 01:47:42 2023
+[*] GTKWave Analyzer v3.3.107 (w)1999-2020 BSI
+[*] Mon Oct  9 11:22:13 2023
 [*]
-[dumpfile] "/mnt/d/work/fpganow/cboe_pitch_lv_fpga/axi_to_uart.vcd"
-[dumpfile_mtime] "Mon Oct  9 01:46:52 2023"
-[dumpfile_size] 8409
-[savefile] "/mnt/d/work/fpganow/cboe_pitch_lv_fpga/axi_to_uart_test.gtkw"
+[dumpfile] "/Users/john/work/git/fpganow/cboe_pitch_lv_fpga/axi_to_uart.vcd"
+[dumpfile_mtime] "Mon Oct  9 11:21:04 2023"
+[dumpfile_size] 122104
+[savefile] "/Users/john/work/git/fpganow/cboe_pitch_lv_fpga/axi_to_uart_test.gtkw"
 [timestart] 0
-[size] 3347 1714
-[pos] 90 66
+[size] 1680 1050
+[pos] 0 28
 *-13.000000 43370 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] axi_to_uart_S00_tb.
 [treeopen] axi_to_uart_S00_tb.axi_uart_to_S00_dut.
-[sst_width] 372
-[signals_width] 598
+[sst_width] 210
+[signals_width] 324
 [sst_expanded] 1
-[sst_vpaned_height] 542
+[sst_vpaned_height] 575
 @28
 axi_to_uart_S00_tb.clk
 axi_to_uart_S00_tb.axi_aresetn
@@ -95,7 +95,15 @@ axi_to_uart_S00_tb.axi_rresp[1:0]
 axi_to_uart_S00_tb.axi_uart_to_S00_dut.uart_write_en
 axi_to_uart_S00_tb.axi_uart_to_S00_dut.uart_writing
 axi_to_uart_S00_tb.axi_uart_to_S00_dut.uart_write_finished
-@29
 axi_to_uart_S00_tb.axi_uart_to_S00_dut.uart_txd
+axi_to_uart_S00_tb.axi_uart_to_S00_dut.i_Tx_DV
+@22
+axi_to_uart_S00_tb.axi_uart_to_S00_dut.i_Tx_Byte[7:0]
+@28
+axi_to_uart_S00_tb.axi_uart_to_S00_dut.o_SM_Main[2:0]
+axi_to_uart_S00_tb.axi_uart_to_S00_dut.o_Tx_Active
+axi_to_uart_S00_tb.axi_uart_to_S00_dut.o_Tx_Done
+@29
+axi_to_uart_S00_tb.axi_uart_to_S00_dut.o_Tx_Serial
 [pattern_trace] 1
 [pattern_trace] 0
