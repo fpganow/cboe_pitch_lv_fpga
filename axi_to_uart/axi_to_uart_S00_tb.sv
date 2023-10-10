@@ -141,8 +141,20 @@ module axi_to_uart_S00_tb ();
         @(posedge clk);
 
         wait(dbg_o_tx_active == 1);
+        // 1-0 @ 155 ns
+        wait (dbg_o_tx_serial == 0);
+        // 0-1 @ 104325 ns
+        wait (dbg_o_tx_serial == 1);
+        // 1-0 @ 521005 ns
+        wait (dbg_o_tx_serial == 0);
+        // 0-1 @ 625175 ns
+        wait (dbg_o_tx_serial == 1);
+        // 1-0 @ 1041885 ns
+        wait (dbg_o_tx_serial == 0);
         wait(dbg_o_tx_done == 1);
-        #2000;
+        // 1041730 / 9 =  115,747 / 10417 = 11
+        // Can I test FIFO Read?
+
         $display("Simulation Finished");
         $finish();
     end

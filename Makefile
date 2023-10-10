@@ -19,7 +19,7 @@ axi_to_uart:
 	@echo "------------------------------------------------------------"
 	@echo "|  Launching GTKWave                                       |"
 	@echo "------------------------------------------------------------"
-	gtkwave ./axi_to_uart_test.gtkw
+	#gtkwave ./axi_to_uart_test.gtkw
 
 build:
 	@echo "----------------"
